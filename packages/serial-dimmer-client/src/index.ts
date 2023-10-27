@@ -1,6 +1,6 @@
 import SerialPort from 'serialport';
 import { io, Socket } from 'socket.io-client';
-import { IOEvent } from '@lightshow/core';
+import { IOEvent } from '@lightshowd/core';
 
 import { log } from './logger';
 const {

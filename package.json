@@ -9,8 +9,8 @@
   "license": "MIT",
   "scripts": {
     "build": "./scripts/build-all.sh",
-    "start": "yarn workspace @lightshow/server start",
-    "dev": "yarn workspace @lightshow/server dev"
+    "start": "yarn workspace @lightshowd/server start",
+    "dev": "yarn workspace @lightshowd/server dev"
   },
   "devDependencies": {
     "@types/node": "^16.11.9",

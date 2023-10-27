@@ -1,5 +1,5 @@
 {
-  "name": "@lightshow/core",
+  "name": "@lightshowd/core",
   "version": "1.2.0",
   "description": "Lightshow.js core library",
   "main": "dist/index.js",

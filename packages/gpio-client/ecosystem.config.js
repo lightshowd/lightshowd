@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: '@lightshow/gpio-client',
+      name: '@lightshowd/gpio-client',
       script: 'yarn',
       args: 'start',
       interpreter: '/bin/bash',

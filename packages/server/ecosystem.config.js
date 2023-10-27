@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: '@lightshow/server',
+      name: '@lightshowd/server',
       script: 'yarn',
       args: 'dev',
       interpreter: '/bin/bash',

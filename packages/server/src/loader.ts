@@ -1,7 +1,7 @@
 import fs from 'fs';
 import { resolve } from 'path';
 
-import { Logger } from '@lightshow/core';
+import { Logger } from '@lightshowd/core';
 
 const { PLUGINS_PATH = '../../config/plugins' } = process.env;
 

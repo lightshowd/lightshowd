@@ -1,5 +1,5 @@
 import Router from '@koa/router';
-import type { Console, Logger } from '@lightshow/core';
+import type { Console, Logger } from '@lightshowd/core';
 
 export const consoleRouter = new Router();
 

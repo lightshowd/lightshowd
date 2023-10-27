@@ -1,5 +1,5 @@
 {
-  "name": "@lightshow/serial-dimmer-client",
+  "name": "@lightshowd/serial-dimmer-client",
   "version": "1.0.0",
   "description": "Client for controlling device and consuming server messages\"",
   "main": "index.js",

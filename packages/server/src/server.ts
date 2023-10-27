@@ -17,7 +17,7 @@ import {
   SpaceCache,
   SMSConfig,
   LogLevel,
-} from '@lightshow/core';
+} from '@lightshowd/core';
 
 import { playlistRouter, consoleRouter, diagnosticsRouter } from './routes';
 
@@ -128,7 +128,7 @@ let leafClient: LeafClient;
 
       ctx.res.statusCode = 200;
       if (ctx.path === '/') {
-        ctx.body = 'Welcome to @lightshow';
+        ctx.body = 'Welcome to @lightshowd';
         return;
       }
       await next();

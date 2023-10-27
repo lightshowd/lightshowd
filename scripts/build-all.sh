@@ -4,10 +4,10 @@ if [ ! -d config ]; then
 fi
 
 echo "Building core..."
-yarn workspace @lightshow/core build
+yarn workspace @lightshowd/core build
 echo "Building gpio-client..."
-yarn workspace @lightshow/gpio-client build
+yarn workspace @lightshowd/gpio-client build
 echo "Building serial-dimmer-client..."
-yarn workspace @lightshow/serial-dimmer-client build
+yarn workspace @lightshowd/serial-dimmer-client build
 echo "Building server..."
-yarn workspace @lightshow/server build
+yarn workspace @lightshowd/server build
