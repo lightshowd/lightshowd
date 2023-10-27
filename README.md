@@ -1,10 +1,10 @@
 <p align=center>
-    <img src="assets/ls-small.svg" alt="Lightshow.js" width=300 />
+    <img src="assets/lightshowd.png" alt="lightshowd" width=300 />
 </p>
 
 <p align="center">Control lights and music for Raspberry Pi and more.</p>
 
-![lightshow](assets/demo.gif)
+![lightshowd](assets/demo.gif)
 
 ## Prerequisites
 
@@ -24,7 +24,7 @@ yarn config:copy
 ### First time run
 
 ```bash
-yarn workspace @lightshow/server start
+yarn workspace @lightshowd/server start
 ```
 
 1. Open the sample preview space @ http://localhost:3000/preview/space/demo-space?events=io.
