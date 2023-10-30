@@ -8,9 +8,10 @@
     "url": "https://github.com/lightshowjs/lightshow",
     "directory": "packages/core"
   },
-  "license": "MIT",
+  "license": "LGPL-3.0-only",
+  "author": "Patrick Dillon <pat@lightshowd.com>",
   "scripts": {
-    "build": "rm -rf ./dist && tsc --project ./tsconfig.json"
+    "build": "rm tsconfig.tsbuildinfo && rm -rf ./dist && tsc --project ./tsconfig.json"
   },
   "dependencies": {
     "bezier-easing": "^2.1.0",

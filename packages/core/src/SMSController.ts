@@ -1,4 +1,4 @@
-import type { Console, Logger } from './';
+import type { ControlCenter, Logger } from './';
 
 export interface SMSConfig {
   provider: 'twilio' | 'custom' | 'none';
@@ -24,7 +24,7 @@ export type SMSHandler = (ctx: SMSHandlerContext) => void;
 
 export interface SMSController {
   readonly logger: Logger;
-  readonly console: Console;
+  readonly controlCenter: ControlCenter;
   readonly config: SMSConfig;
 
   constructor: Function;

@@ -59,7 +59,7 @@ export class SpaceCache {
     this.logger = logger.getGroupLogger('SpaceCache');
   }
 
-  loadSpaces(file: string = 'spaces.json') {
+  loadSpaces(file: string) {
     const spacePath = resolve(this.path, file);
 
     if (!fs.existsSync(spacePath)) {

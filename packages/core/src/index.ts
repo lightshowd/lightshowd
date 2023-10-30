@@ -1,4 +1,4 @@
-export * from './Console';
+export * from './ControlCenter';
 export * from './IOEvent';
 export * from './Logger';
 export * from './Midi';

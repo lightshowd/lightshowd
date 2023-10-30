@@ -8,17 +8,17 @@ import { SpaceCache } from './Space';
 import type { Server as SocketIOServer, Socket } from 'socket.io';
 
 import { Playlist, Track } from './Playlist';
-import { IOEvent, Logger } from './';
+import { IOEvent, Logger } from '.';
 import { setTimeout as awaitSetTimeout } from 'timers/promises';
 
-export class Console extends EventEmitter {
+export class ControlCenter extends EventEmitter {
   public playlist: Playlist;
   public io: SocketIOServer;
   public spaceCache: SpaceCache;
   public logger: Logger;
   public disabledNotes: string[] = [];
   public dimmableNotes: string[] = [];
-  public logGroup = 'Console';
+  public logGroup = 'ControleCenter';
   private currentTrack: Track | null = null;
   private audioFile: string | null | undefined = null;
   private midiFile: string | null | undefined = null;

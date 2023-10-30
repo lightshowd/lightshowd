@@ -1,3 +1,3 @@
-export * from './console';
+export * from './controlCenter';
 export * from './diagnostics';
 export * from './playlist';

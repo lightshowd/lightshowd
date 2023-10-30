@@ -1,29 +1,29 @@
 import { io, Socket } from 'socket.io-client';
 
-import { IOEvent, Console } from '@lightshowd/core';
+import { IOEvent, ControlCenter } from '@lightshowd/core';
 
 export class LeafClient {
   public socketClient: Socket;
-  public console: Console;
+  public controlCenter: ControlCenter;
   public trackLoaded = false;
 
   constructor({
-    console,
+    controlCenter,
     serverAddress,
   }: {
-    console: Console;
+    controlCenter: ControlCenter;
     serverAddress: string;
   }) {
     this.socketClient = io(serverAddress, { auth: { id: 'leaf' } });
-    this.console = console;
+    this.controlCenter = controlCenter;
     this.bindEvents();
   }
 
   bindEvents() {
     const client = this.socketClient;
-    const trackConsole = this.console;
+    const controlCenter = this.controlCenter;
 
-    trackConsole.on(IOEvent.TrackEnd, () => {
+    controlCenter.on(IOEvent.TrackEnd, () => {
       this.trackLoaded = false;
     });
 
@@ -31,27 +31,27 @@ export class LeafClient {
       if (this.trackLoaded) {
         return;
       }
-      const track = this.console.playlist.getTrack(trackName);
+      const track = this.controlCenter.playlist.getTrack(trackName);
       if (!track) {
-        trackConsole.logger.error({ msg: 'Track not found', trackName });
+        controlCenter.logger.error({ msg: 'Track not found', trackName });
         return;
       }
       this.trackLoaded = true;
-      trackConsole.logger.info({ msg: 'Track loaded', track });
-      trackConsole.loadTrack({ track, formats: ['midi'] });
+      controlCenter.logger.info({ msg: 'Track loaded', track });
+      controlCenter.loadTrack({ track, formats: ['midi'] });
     });
 
     client.on(IOEvent.TrackStart, () => {
-      trackConsole.logger.info({ msg: 'Track playing' });
-      trackConsole.playTrack();
+      controlCenter.logger.info({ msg: 'Track playing' });
+      controlCenter.playTrack();
     });
 
     client.on(IOEvent.MidiSync, (tick: number) => {
-      trackConsole.seekMidiByTick(tick);
+      controlCenter.seekMidiByTick(tick);
     });
 
     client.on(IOEvent.TrackEnd, () => {
-      trackConsole.stopTrack();
+      controlCenter.stopTrack();
     });
   }
 }

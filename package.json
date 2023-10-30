@@ -5,8 +5,8 @@
   "workspaces": [
     "packages/*"
   ],
-  "author": "Patrick Dillon <me@lightshow.dev>",
-  "license": "MIT",
+  "author": "Patrick Dillon <pat@lightshowd.com>",
+  "license": "LGPL-3.0-only",
   "scripts": {
     "build": "./scripts/build-all.sh",
     "start": "yarn workspace @lightshowd/server start",

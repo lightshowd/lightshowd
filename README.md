@@ -16,9 +16,7 @@
 # Install dependencies
 yarn
 # Build all packages
-yarn build:all
-# Copy sample config folder to ./config
-yarn config:copy
+yarn build
 ```
 
 ### First time run

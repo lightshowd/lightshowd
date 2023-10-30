@@ -2,7 +2,7 @@
   "name": "@lightshowd/server",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
     "start": "DOTENV_CONFIG_PATH=../../config/.env.server NODE_ENV=production node -r dotenv/config ./dist/server",
     "dev": "DOTENV_CONFIG_PATH=../../config/.env.server ts-node-dev -r dotenv/config --ignore-watch=.next  --transpile-only  --files ./src/server.ts",
@@ -10,8 +10,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "rm -rf ./dist && tsc"
   },
-  "author": "Patrick Dillon <dillon76@gmail.com>",
-  "license": "ISC",
+  "author": "Patrick Dillon <me@lightshow.dev>",
+  "license": "LGPL-3.0-only",
   "dependencies": {
     "@koa/router": "^10.1.1",
     "dotenv": "^10.0.0",

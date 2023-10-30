@@ -12,14 +12,14 @@ import { LeafClient } from './LeafClient';
 
 import {
   Playlist,
-  Console,
+  ControlCenter,
   Logger,
   SpaceCache,
   SMSConfig,
   LogLevel,
 } from '@lightshowd/core';
 
-import { playlistRouter, consoleRouter, diagnosticsRouter } from './routes';
+import { playlistRouter, controlCenterRouter, diagnosticsRouter } from './routes';
 
 const plugins = loadPlugins();
 
@@ -28,6 +28,7 @@ const {
   TRACKS_PATH = '../../config/tracks',
   ELEMENTS_PATH = '../../config/elements',
   SPACES_PATH = '../../config/spaces',
+  SPACE_FILE = 'spaces.json',
   PORT = '3000',
   LOG_LEVELS = '*',
   HUB_ADDRESS,
@@ -63,16 +64,16 @@ let leafClient: LeafClient;
   });
 
   const spaceCache = new SpaceCache({ path: SPACES_PATH, logger });
-  spaceCache.loadSpaces();
+  spaceCache.loadSpaces(SPACE_FILE);
 
-  const trackConsole = new Console({ io, playlist, logger, spaceCache });
+  const controlCenter = new ControlCenter({ io, playlist, logger, spaceCache });
 
   // Only one SMS plugin will be instantiated
   const smsPlugin = plugins.find((p) => p.type === 'sms');
 
   const smsController = smsPlugin?.module({
     config: { provider: SMS_PROVIDER as SMSConfig['provider'] },
-    console: trackConsole,
+    controlCenter,
     logger,
   });
 
@@ -91,7 +92,7 @@ let leafClient: LeafClient;
 
   if (HUB_ADDRESS) {
     leafClient = new LeafClient({
-      console: trackConsole,
+      controlCenter,
       serverAddress: HUB_ADDRESS,
     });
     logger.info({ msg: 'Registering as leaf node', ip: HUB_ADDRESS });
@@ -112,7 +113,7 @@ let leafClient: LeafClient;
   });
 
   playlistRouter.prefix('/api');
-  consoleRouter.prefix('/api');
+  controlCenterRouter.prefix('/api');
   diagnosticsRouter.prefix('/api');
 
   const tracksServeHandler = serve(path.resolve(TRACKS_PATH));
@@ -136,12 +137,12 @@ let leafClient: LeafClient;
     .use(async (ctx, next) => {
       ctx.state.playlist = playlist;
       ctx.state.logger = logger;
-      ctx.state.trackConsole = trackConsole;
+      ctx.state.controlCenter = controlCenter;
       ctx.state.io = io;
       await next();
     })
     .use(playlistRouter.routes())
-    .use(consoleRouter.routes())
+    .use(controlCenterRouter.routes())
     .use(diagnosticsRouter.routes())
     .use(async (ctx, next) => {
       if (ctx.path.startsWith('/audio')) {

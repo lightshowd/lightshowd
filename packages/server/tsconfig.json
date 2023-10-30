@@ -13,9 +13,12 @@
     "forceConsistentCasingInFileNames": true,
     "outDir": "dist",
     "paths": {
-      "@lightshowd/core/*": ["../core/*"],
-      "@lightshowd/sms/*": ["../sms/*"],
-      "@lightshowd/preview/*": ["../preview/*"]
+      "@lightshowd/core/*": ["../core"]
     }
-  }
+  },
+  "references": [
+    {
+      "path": "../core"
+    }
+  ]
 }

@@ -1,5 +1,5 @@
 import Router from '@koa/router';
-import type { Playlist, Console, Logger } from '@lightshowd/core';
+import type { Playlist, ControlCenter, Logger } from '@lightshowd/core';
 import * as fs from 'fs';
 
 export const playlistRouter = new Router();
