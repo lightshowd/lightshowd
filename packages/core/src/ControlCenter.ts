@@ -18,7 +18,7 @@ export class ControlCenter extends EventEmitter {
   public logger: Logger;
   public disabledNotes: string[] = [];
   public dimmableNotes: string[] = [];
-  public logGroup = 'ControleCenter';
+  public logGroup = 'ControlCenter';
   private currentTrack: Track | null = null;
   private audioFile: string | null | undefined = null;
   private midiFile: string | null | undefined = null;

@@ -3,14 +3,14 @@ import type { ControlCenter, Logger } from '@lightshowd/core';
 
 export const controlCenterRouter = new Router();
 
-controlCenterRouter.get('/console/disable-notes', async (ctx) => {
+controlCenterRouter.get('/control-center/disable-notes', async (ctx) => {
   const { notes } = ctx.query;
   const { controlCenter }: { controlCenter: ControlCenter } = ctx.state;
   controlCenter.setDisabledNotes((notes as string).split(','));
   ctx.body = { disabled: notes };
 });
 
-controlCenterRouter.get('/console/track/play', async (ctx) => {
+controlCenterRouter.get('/control-center/track/play', async (ctx) => {
   const { track: trackName } = ctx.query;
 
   const { controlCenter, logger }: { controlCenter: ControlCenter; logger: Logger } =
@@ -36,7 +36,7 @@ controlCenterRouter.get('/console/track/play', async (ctx) => {
   ctx.body = `Track "${trackName}" not found.`;
 });
 
-controlCenterRouter.get('/console/track/load', async (ctx) => {
+controlCenterRouter.get('/control-center/track/load', async (ctx) => {
   const { track: trackName, format } = ctx.query;
 
   const { controlCenter, logger }: { controlCenter: ControlCenter; logger: Logger } =
@@ -54,7 +54,7 @@ controlCenterRouter.get('/console/track/load', async (ctx) => {
   ctx.body = `Track "${trackName}" not found.`;
 });
 
-controlCenterRouter.get('/console/track/stop', async (ctx) => {
+controlCenterRouter.get('/control-center/track/stop', async (ctx) => {
   const { controlCenter, logger }: { controlCenter: ControlCenter; logger: Logger } =
     ctx.state;
 
