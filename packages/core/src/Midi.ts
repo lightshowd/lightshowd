@@ -18,7 +18,7 @@ export enum MidiEvent {
   NoteOff = 'Note off',
 }
 
-interface DimmerEvent extends MidiPlayer.Event {
+interface NoteOnEvent extends MidiPlayer.Event {
   length?: number;
   cancelled?: boolean;
   sameNotes?: string[];
@@ -35,7 +35,10 @@ export class Midi {
   public dimmableNotes: string[] = [];
   public dimmableNoteNumbers: number[] = [];
   public velocityOverride: number = 0;
-  public dimmerMap: any[] = [];
+  /**
+   * A map of all NoteOn events and their expected length/duration
+   */
+  public noteTimeMappings: any[] = [];
   public logger: Logger;
   public timeRanges: {
     time: number;
@@ -104,36 +107,25 @@ export class Midi {
         }
 
         if (name === MidiEvent.NoteOn) {
-          if (this.dimmableNoteNumbers.includes(noteNumber)) {
-            const computedLengthEvent = this.dimmerMap.find(
-              (ev) => ev.tick === tick && ev.noteNumber === noteNumber
-            );
+          const computedLengthEvent = this.noteTimeMappings.find(
+            (ev) => ev.tick === tick && ev.noteNumber === noteNumber
+          );
 
-            if (!computedLengthEvent) {
-              return;
-            }
-
-            const noteArgs = [
-              noteName,
-              noteNumber,
-              computedLengthEvent.length,
-              computedLengthEvent.sameNotes,
-              // auto off (for dimmer notes)
-              this.velocityOverride || velocity,
-            ];
-            this.logger.verbose({ msg: 'dimmable note on', payload: noteArgs });
-            io.emit(IOEvent.NoteOn, ...noteArgs);
+          if (!computedLengthEvent) {
             return;
           }
 
-          io.emit(
-            IOEvent.NoteOn,
+          const noteArgs = [
             noteName,
             noteNumber,
-            0,
-            undefined,
-            this.velocityOverride || velocity
-          );
+            computedLengthEvent.length,
+            computedLengthEvent.sameNoteNums
+              ? computedLengthEvent.sameNoteNums.join(',')
+              : '',
+            // auto off (for dimmer notes)
+            this.velocityOverride || velocity,
+          ];
+          io.emit(IOEvent.NoteOn, ...noteArgs);
         }
         if (name === MidiEvent.NoteOff) {
           io.emit(IOEvent.NoteOff, noteName, noteNumber);
@@ -253,24 +245,20 @@ export class Midi {
 
     const tempoMap = [...tempoEvents].reverse();
 
-    const dimmerNotes = midiEvents[0].filter(
-      (ev) => ev.noteNumber && this.dimmableNoteNumbers.includes(ev.noteNumber)
-    );
+    const noteEvents = midiEvents[0].filter((ev) => ev.noteNumber);
 
-    this.logger.verbose({ msg: 'dimmer_notes', dimmerNotes });
+    const noteOnTimeMap: NoteOnEvent[] = [];
 
-    const dimmerTimeMap: DimmerEvent[] = [];
-
-    dimmerNotes.forEach((event) => {
+    noteEvents.forEach((event) => {
       // set up the on note
       if (event.name === MidiEvent.NoteOn) {
-        dimmerTimeMap.unshift(event);
+        noteOnTimeMap.unshift(event);
         return;
       }
 
       if (event.name === MidiEvent.NoteOff) {
         // Pair the off note
-        const pairedNote = dimmerTimeMap.find(
+        const pairedNote = noteOnTimeMap.find(
           (n) => n.noteName === event.noteName
         );
 
@@ -293,7 +281,7 @@ export class Midi {
       // flip order
     });
 
-    const sortMap = sortBy(dimmerTimeMap, ['tick', 'length', 'noteNumber']);
+    const sortMap = sortBy(noteOnTimeMap, ['tick', 'length', 'noteNumber']);
 
     sortMap.forEach((ev, _, currentMap) => {
       if (ev.cancelled) {
@@ -311,7 +299,7 @@ export class Midi {
       alignedEvents.forEach((ae) => (ae.cancelled = true));
     });
 
-    this.dimmerMap = sortMap.filter((ev) => !ev.cancelled);
+    this.noteTimeMappings = sortMap.filter((ev) => !ev.cancelled);
   }
 
   public getTickMatchingTime(seconds: number) {
