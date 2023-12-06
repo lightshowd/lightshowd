@@ -49,7 +49,7 @@ export class Playlist {
     this.trackLog = {};
   }
 
-  loadPlaylist(file: string = 'playlist.json') {
+  loadPlaylist(file: string = 'playlist.json', showDisabled = false) {
     const playlistPath = resolve(this.path, file);
 
     if (!fs.existsSync(playlistPath)) {
@@ -60,7 +60,7 @@ export class Playlist {
 
     this.tracks = require(playlistPath) as Track[];
     this.tracks = this.tracks
-      .filter((t) => !t.disabled)
+      .filter((t) => showDisabled || !t.disabled)
       .map((t) => {
         const midiPath = this.getFilePath(t, 'midi');
         const audioPath = this.getFilePath(t, 'audio');

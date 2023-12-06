@@ -386,6 +386,10 @@ export class ControlCenter extends EventEmitter {
 
     socket.on('disconnect', () => {
       this.stopTrack();
+      // refresh playlist with current active tracks
+      setTimeout(() => {
+        this.playlist.loadPlaylist();
+      });
     });
   }
 

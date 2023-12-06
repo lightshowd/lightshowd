@@ -23,7 +23,7 @@ diagnosticsRouter.get('/diagnostics/io', async (ctx) => {
         n,
         getNoteNumber(n),
         length ? parseInt(length as string) : undefined,
-        sameNotes ? (sameNotes as string).split(',') : undefined,
+        sameNotes ? (sameNotes as string) : undefined,
         parseInt((velocity as string) || '0')
       );
     });
