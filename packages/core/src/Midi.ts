@@ -291,7 +291,10 @@ export class Midi {
         (ce) =>
           ce.tick === ev.tick &&
           ce.length === ev.length &&
-          ce.noteName !== ev.noteName
+          ce.noteName !== ev.noteName &&
+          Math.floor(ce.noteNumber! / 12) === Math.floor(ev.noteNumber! / 12) &&
+          ((ce.noteNumber! % 12 <= 5 && ev.noteNumber! % 12 <= 5) ||
+            (ce.noteNumber! % 12 > 5 && ev.noteNumber! % 12 > 5))
       );
 
       ev.sameNotes = alignedEvents.map((ae) => ae.noteName!);
