@@ -1,6 +1,7 @@
 import { io, Socket } from 'socket.io-client';
 
-import { IOEvent, ControlCenter } from '@lightshowd/core';
+import { IOEvent } from '@lightshowd/core/IOEvent';
+import { ControlCenter } from '@lightshowd/core/ControlCenter';
 
 export class LeafClient {
   public socketClient: Socket;

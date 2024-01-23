@@ -12,3 +12,4 @@ ssl-proxy
 config/
 tconfig.tsbuildinfo
 .junk
+*.tsbuildinfo

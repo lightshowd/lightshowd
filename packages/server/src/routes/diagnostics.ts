@@ -1,5 +1,6 @@
 import Router from '@koa/router';
-import { getNoteNumber, IOEvent } from '@lightshowd/core';
+import { getNoteNumber } from '@lightshowd/core/Note';
+import { IOEvent } from '@lightshowd/core/IOEvent';
 import type { Server as SocketIOServer } from 'socket.io';
 
 export const diagnosticsRouter = new Router();

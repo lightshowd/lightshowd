@@ -1,7 +1,7 @@
 import { io, Socket } from 'socket.io-client';
 import rpio from 'rpio';
 
-import { IOEvent } from '@lightshowd/core';
+import { IOEvent } from '@lightshowd/core/IOEvent';
 import { log } from './logger';
 
 const { SERVER_URL, CHANNELS, LOG_MESSAGES, CLIENT_ID } = process.env;

@@ -1,17 +1,18 @@
 {
   "compilerOptions": {
-    "rootDir": "./src",
     "lib": ["es2021", "DOM"],
     "module": "commonjs",
     "target": "es2021",
-    "declaration": true,
     "noImplicitAny": false,
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "outDir": "dist",
-    "composite": true
+    "composite": true,
+    "incremental": true,
+    "declaration": true,
+    "allowJs": false,
+    "sourceMap": true
   },
-  "include": ["src"]
+  "include": ["**/*.ts"]
 }

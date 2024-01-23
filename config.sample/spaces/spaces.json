@@ -1,122 +1,31 @@
-[{
-  "name": "Demo Space",
-  "id": "demo-space",
-  "background": "#111",
-  "boxes": [
-    {
-      "id": "box1",
-      "channels": 8,
-      "notes": [["*5"]],
-      "dimmableNotes": [["*5"]],
-      "elements": [
-        {
-          "src": "/elements/demo-space/tree.svg",
-          "channel": 1,
-          "x": 600,
-          "y": 290
-        },
-        {
-          "src": "/elements/demo-space/tree.svg",
-          "channel": 2,
-          "x": 796,
-          "y": 442
-        },
-        {
-          "src": "/elements/demo-space/tree.svg",
-          "channel": 3,
-          "x": 718,
-          "y": 32
-        },
-        {
-          "src": "/elements/demo-space/tree.svg",
-          "channel": 4,
-          "x": 63,
-          "y": 133,
-          "width": 226,
-          "height": 173
-        },
-        {
-          "src": "/elements/demo-space/candycane.svg",
-          "channel": 5,
-          "x": 379,
-          "y": 426
-        },
-        {
-          "src": "/elements/demo-space/candycane.svg",
-          "channel": 6,
-          "x": 614,
-          "y": 480
-        },
-        {
-          "src": "/elements/demo-space/candycane.svg",
-          "channel": 7,
-          "x": 953,
-          "y": 209
-        },
-        {
-          "src": "/elements/demo-space/candycane.svg",
-          "channel": 8,
-          "x": 434,
-          "y": 84,
-          "width": 46,
-          "height": 77
-        }
-      ]
-    },
-    {
-      "id": "box2",
-      "channels": 8,
-      "notes": [["*2"], ["*4"]],
-      "elements": [
-        {
-          "src": "/elements/demo-space/christmastree.svg",
-          "channel": 1,
-          "x": 1024,
-          "y": 41
-        },
-        {
-          "src": "/elements/demo-space/christmastree.svg",
-          "channel": 2,
-          "x": 764,
-          "y": 206
-        },
-        {
-          "src": "/elements/demo-space/christmastree.svg",
-          "channel": 3,
-          "x": 1001,
-          "y": 303
-        },
-        {
-          "src": "/elements/demo-space/christmastree.svg",
-          "channel": 4,
-          "x": 1127,
-          "y": 442
-        },
-        {
-          "src": "/elements/demo-space/bush.svg",
-          "channel": 5,
-          "x": 212,
-          "y": 320
-        },
-        {
-          "src": "/elements/demo-space/bush.svg",
-          "channel": 6,
-          "x": 362,
-          "y": 202
-        },
-        {
-          "src": "/elements/demo-space/bush.svg",
-          "channel": 7,
-          "x": 1157,
-          "y": 197
-        },
-        {
-          "src": "/elements/demo-space/bush.svg",
-          "channel": 8,
-          "x": 561,
-          "y": 95
-        }
-      ]
-    }
-  ]
-}]
+[
+  {
+    "name": "Demo Space",
+    "id": "demo-space",
+    "baseNotes": ["C", "D", "E", "F", "Gb", "G", "A", "B"],
+    "boxes": [
+      {
+        "id": "box-1",
+        "channels": 8,
+        "notes": [
+          ["C3", "D3", "E3", "F3", "Gb3", "G3", "A3", "B3"],
+          ["C5", "D5", "E5", "F5", "Gb5", "G5", "A5", "B5"]
+        ],
+        "dimmableNotes": [["*5"]]
+      },
+      {
+        "id": "box-2",
+        "channels": 8,
+        "notes": [
+          ["C2", "D2", "E2", "F2", "Gb2", "G2", "A2", "B2"],
+          ["C4", "D4", "E4", "F4", "Gb4", "G4", "A4", "B4"]
+        ]
+      },
+      {
+        "id": "box-3",
+        "channels": 4,
+        "notes": [["C2", "D2", "E2", "F2"]]
+      }
+    ]
+  }
+]

@@ -1,4 +1,6 @@
-src/
+*.ts
+!*.d.ts
+*.map
 tsconfig.json
 *.log
 node_modules

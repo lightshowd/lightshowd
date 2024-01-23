@@ -2,7 +2,6 @@
   "name": "@lightshowd/core",
   "version": "0.0.2-1",
   "description": "Lightshow.js core library",
-  "main": "dist/index.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/lightshowjs/lightshow",
@@ -11,7 +10,8 @@
   "license": "LGPL-3.0-only",
   "author": "Patrick Dillon <pat@lightshowd.com>",
   "scripts": {
-    "build": "rm -f tsconfig.tsbuildinfo && rm -rf ./dist && tsc --project ./tsconfig.json"
+    "clean": "./scripts/clean.sh",
+    "build": "yarn clean && tsc --project ./tsconfig.json"
   },
   "dependencies": {
     "bezier-easing": "^2.1.0",

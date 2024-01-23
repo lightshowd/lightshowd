@@ -10,14 +10,14 @@ import path from 'path';
 import { loadPlugins } from './loader';
 import { LeafClient } from './LeafClient';
 
-import {
-  Playlist,
-  ControlCenter,
-  Logger,
-  SpaceCache,
-  SMSConfig,
-  LogLevel,
-} from '@lightshowd/core';
+import { Logger } from '@lightshowd/core/Logger';
+import { ControlCenter } from '@lightshowd/core/ControlCenter';
+import { Playlist } from '@lightshowd/core/Playlist';
+import { SpaceCache } from '@lightshowd/core/Space';
+import {SMSConfig} from "@lightshowd/core/SMSController";
+import {LogLevel} from "@lightshowd/core/Logger";
+
+
 
 import { playlistRouter, controlCenterRouter, diagnosticsRouter } from './routes';
 

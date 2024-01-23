@@ -22,13 +22,11 @@ yarn build
 ### First time run
 
 ```bash
-yarn workspace @lightshowd/server start
+yarn dev
 ```
 
-1. Open the sample preview space @ http://localhost:3000/preview/space/demo-space?events=io.
+1. Open the simulator @ http://localhost:3000/simulator.
 
-2. To play the sample track, click the ▶️ icon in the upper right to view the listing and click the track.
+2. To play the sample track, click the ▶️ icon in the upper right open playlist drawer and click the track.
 
 3. Watch the demo space do it's thing!
-
-https://user-images.githubusercontent.com/1138977/166842183-57cc2f4c-6014-421e-90fc-7edd84f323cd.mov

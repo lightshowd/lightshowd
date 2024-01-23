@@ -1,5 +1,6 @@
 import Router from '@koa/router';
-import type { ControlCenter, Logger } from '@lightshowd/core';
+import type { ControlCenter } from '@lightshowd/core/ControlCenter';
+import type { Logger } from '@lightshowd/core/Logger';
 
 export const controlCenterRouter = new Router();
 
@@ -13,8 +14,10 @@ controlCenterRouter.get('/control-center/disable-notes', async (ctx) => {
 controlCenterRouter.get('/control-center/track/play', async (ctx) => {
   const { track: trackName } = ctx.query;
 
-  const { controlCenter, logger }: { controlCenter: ControlCenter; logger: Logger } =
-    ctx.state;
+  const {
+    controlCenter,
+    logger,
+  }: { controlCenter: ControlCenter; logger: Logger } = ctx.state;
 
   const track = controlCenter.playlist.getTrack(trackName as string);
 
@@ -39,8 +42,10 @@ controlCenterRouter.get('/control-center/track/play', async (ctx) => {
 controlCenterRouter.get('/control-center/track/load', async (ctx) => {
   const { track: trackName, format } = ctx.query;
 
-  const { controlCenter, logger }: { controlCenter: ControlCenter; logger: Logger } =
-    ctx.state;
+  const {
+    controlCenter,
+    logger,
+  }: { controlCenter: ControlCenter; logger: Logger } = ctx.state;
 
   const track = controlCenter.playlist.getTrack(trackName as string);
 
@@ -55,8 +60,10 @@ controlCenterRouter.get('/control-center/track/load', async (ctx) => {
 });
 
 controlCenterRouter.get('/control-center/track/stop', async (ctx) => {
-  const { controlCenter, logger }: { controlCenter: ControlCenter; logger: Logger } =
-    ctx.state;
+  const {
+    controlCenter,
+    logger,
+  }: { controlCenter: ControlCenter; logger: Logger } = ctx.state;
 
   if (controlCenter.playlist.currentTrack) {
     try {
@@ -72,4 +79,13 @@ controlCenterRouter.get('/control-center/track/stop', async (ctx) => {
   } else {
     ctx.body = `No track is currently playing.`;
   }
+});
+
+controlCenterRouter.get('/control-center/spaces', async (ctx) => {
+  const {
+    controlCenter,
+    logger,
+  }: { controlCenter: ControlCenter; logger: Logger } = ctx.state;
+
+  ctx.body = controlCenter.spaceCache.getSpaces();
 });
