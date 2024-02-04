@@ -108,11 +108,11 @@ export const PlayerControls: React.FC<PlayerControlProps> = ({
         spacing={2}
         sx={{ p: 2 }}
       >
-        <FastRewindIcon />
-        <IconButton onClickCapture={handlePlayPauseClick}>
+        {/* <FastRewindIcon /> */}
+        <IconButton disabled={!track} onClickCapture={handlePlayPauseClick}>
           {!isPlaying ? <PlayCircleFilledIcon /> : <PauseCircleFilledIcon />}
         </IconButton>
-        <FastForwardIcon />
+        {/* <FastForwardIcon /> */}
       </Stack>
       <Stack
         direction="row"
@@ -124,6 +124,7 @@ export const PlayerControls: React.FC<PlayerControlProps> = ({
         <Slider
           value={seekPercentage}
           ref={sliderRef}
+          disabled={!track}
           onChange={handleSliderChange}
           onChangeCommitted={handleSliderChangeCommitted}
           aria-label="Time"
@@ -131,6 +132,11 @@ export const PlayerControls: React.FC<PlayerControlProps> = ({
           valueLabelFormat={(v) => getTimeString(duration * (v / 100))}
           components={{
             ValueLabel: ValueLabelComponent,
+          }}
+          sx={{
+            '& .MuiSlider-thumb': {
+              transition: 'left 2s',
+            },
           }}
         />
         <Typography ref={durationRef} />

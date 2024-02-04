@@ -1,6 +1,14 @@
 import * as React from 'react';
 
-import { Box, Drawer, IconButton, Stack, Typography } from '@mui/material';
+import {
+  Box,
+  Drawer,
+  IconButton,
+  Stack,
+  Typography,
+  CircularProgress,
+  Divider,
+} from '@mui/material';
 
 import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleFilledWhite';
 import GraphicEqIcon from '@mui/icons-material/GraphicEq';
@@ -24,6 +32,11 @@ export const Player: React.FC<PlayerProps> = ({
   visible = true,
 }) => {
   const [togglePlayer, setTogglePlayer] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsLoading(false);
+  }, [activeTrack]);
 
   const toggleDrawer =
     (open: boolean) => (event: React.KeyboardEvent | React.MouseEvent) => {
@@ -76,7 +89,10 @@ export const Player: React.FC<PlayerProps> = ({
               >
                 <IconButton
                   disabled={activeTrack?.file === track.file}
-                  onClickCapture={() => onPlayClick(track)}
+                  onClickCapture={() => {
+                    setIsLoading(true);
+                    onPlayClick(track);
+                  }}
                 >
                   {activeTrack?.file === track.file ? (
                     <GraphicEqIcon htmlColor="green" />
@@ -84,18 +100,31 @@ export const Player: React.FC<PlayerProps> = ({
                     <PlayCircleOutlineIcon />
                   )}
                 </IconButton>
+                {isLoading && (
+                  <CircularProgress
+                    size={28}
+                    sx={{
+                      left: 6,
+                      color: 'green',
+                      position: 'absolute',
+                      zIndex: 1,
+                    }}
+                  />
+                )}
                 <Typography variant="subtitle2">
                   {track.name} / {track.artist}
                 </Typography>
               </Stack>
             ))}
           </Stack>
+
           <Stack
             spacing={1}
             justifyContent="flex-end"
             alignItems="stretch"
             sx={{ flex: 1 }}
           >
+            <Divider />
             <PlayerControls track={activeTrack} />
           </Stack>
         </Stack>
