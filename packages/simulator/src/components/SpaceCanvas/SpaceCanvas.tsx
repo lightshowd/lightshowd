@@ -10,7 +10,7 @@ import {
   isMobile,
 } from '../../helpers';
 
-import { processImagePaste } from './processImage';
+import { processImagePaste, processFileDrop } from './processImage';
 import { CanvasAction } from './types';
 import { ContextMenu } from '../ContextMenu';
 
@@ -542,6 +542,31 @@ export const SpaceCanvas: React.FC<{
     window.addEventListener('keydown', handleKeyPress);
     window.addEventListener('keyup', () => {
       altKeyPressedRef.current = false;
+    });
+
+    document.getElementById('space-canvas').addEventListener(
+      'dragover',
+      (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+      },
+      false
+    );
+
+    document.getElementById('space-canvas').addEventListener('drop', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      processFileDrop(e, (err, { spaceId, contents }) => {
+        if (err) {
+          alert(err?.message ?? err);
+          return;
+        }
+        handleSpaceChange(e, {
+          action: CanvasAction.Import,
+          payload: { spaceId, contents },
+        });
+      });
     });
 
     document.addEventListener('paste', (e) => {

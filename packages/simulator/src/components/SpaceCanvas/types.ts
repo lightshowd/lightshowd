@@ -13,4 +13,5 @@ export enum CanvasAction {
    */
   StageLoad = 'stage:load',
   StageProcessing = 'stage:processing',
+  Import = 'import',
 }

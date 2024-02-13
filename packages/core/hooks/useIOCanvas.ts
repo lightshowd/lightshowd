@@ -42,6 +42,44 @@ export const useIOCanvas = ({
     });
   };
 
+  const lightsOff = () => {
+    cloneGroupEls(elements, elementCache);
+    hideElements();
+  };
+
+  const lightsOn = () => {
+    // Restore elements with effects from cache
+    Object.values(elementCache.current).forEach((canvasEl) => {
+      canvasEl.to({
+        opacity: 1,
+        duration: disableDimming ? 0 : 0.1,
+      });
+    });
+    destroyClones(elements, elementCache);
+  };
+
+  const onKeyPress = React.useCallback(
+    (ev) => {
+      if (ev.ctrlKey) {
+        if (ev.key === 'w') {
+          lightsOff();
+        }
+
+        if (ev.shiftKey && ev.key === 'W') {
+          lightsOn();
+        }
+      }
+    },
+    [clientOverride]
+  );
+
+  React.useEffect(() => {
+    window.addEventListener('keypress', onKeyPress);
+    return () => {
+      window.removeEventListener('keypress', onKeyPress);
+    };
+  }, [clientOverride]);
+
   React.useEffect(() => {
     if (!elements.length) {
       return;
@@ -87,18 +125,11 @@ export const useIOCanvas = ({
     socketClient
       .on(IOEvent.TrackStart, () => {
         trackPlayingRef.current = true;
-        cloneGroupEls(elements, elementCache);
-        hideElements();
+        lightsOff();
       })
       .on(IOEvent.TrackEnd, () => {
         trackPlayingRef.current = false;
-        Object.values(elementCache.current).forEach((canvasEl) => {
-          canvasEl.to({
-            opacity: 1,
-            duration: disableDimming ? 0 : 0.1,
-          });
-        });
-        destroyClones(elements, elementCache);
+        lightsOn();
       })
       .on(IOEvent.NoteOn, (note, velocity, length = 0, sameNotes) => {
         const notes = [note];
@@ -167,7 +198,7 @@ export const useIOCanvas = ({
     return () => {
       socketClient.removeAllListeners();
     };
-  }, [elements]);
+  }, [elements, clientOverride]);
 
   return { setElements };
 };

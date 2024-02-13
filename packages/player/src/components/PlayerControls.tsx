@@ -23,11 +23,13 @@ interface PlayerControlProps {
     event: Event,
     { action, value }: { action: 'seek'; value: number }
   ) => void;
+  paused?: boolean;
 }
 
 export const PlayerControls: React.FC<PlayerControlProps> = ({
   onChange,
   track,
+  paused = false,
 }) => {
   const sliderRef = React.useRef<HTMLSpanElement | null>(null);
   const timeRef = React.useRef<HTMLSpanElement | null>(null);
@@ -54,6 +56,12 @@ export const PlayerControls: React.FC<PlayerControlProps> = ({
   React.useEffect(() => {
     setIsPlaying(false);
   }, [track]);
+
+  React.useMemo(() => {
+    if (paused) {
+      handlers.pause();
+    }
+  }, [paused]);
 
   const handleSliderChange = (_, newValue: number | number[]) => {
     setSeekChangePercentage(newValue as number);

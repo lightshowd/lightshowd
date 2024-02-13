@@ -1,7 +1,7 @@
 import * as React from 'react';
+import useSwr from 'swr';
 
 import {
-  Box,
   Drawer,
   IconButton,
   Stack,
@@ -16,66 +16,54 @@ import GraphicEqIcon from '@mui/icons-material/GraphicEq';
 import type { Track } from '@lightshowd/core/Playlist';
 import { PlayerControls } from './PlayerControls';
 
-const BASE_COLOR = 'rgba(255, 255, 255, 0.7)';
-
 interface PlayerProps {
-  tracks: Track[];
-  activeTrack: Track;
   onPlayClick: (track: Track) => void;
+  onClose: () => void;
   visible?: boolean;
+  paused?: boolean;
 }
 
+const fetcher = (url) => fetch(url).then((res) => res.json());
+
 export const Player: React.FC<PlayerProps> = ({
-  tracks,
-  activeTrack,
   onPlayClick,
+  onClose,
   visible = true,
+  paused = false,
 }) => {
-  const [togglePlayer, setTogglePlayer] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
+  const [isVisible, setIsVisible] = React.useState(visible);
+  const [activeTrack, setActiveTrack] = React.useState<
+    (Track & { paused: boolean }) | null
+  >(null);
+
+  const { data: tracks = [], error } = useSwr('/api/playlist', fetcher);
+
+  const handlePlayTrack = (track, action?: string) => {
+    fetch(
+      `/api/control-center/track/load?track=${track.name}&format=midi`
+    ).then(() => {
+      setActiveTrack(track);
+    });
+  };
 
   React.useEffect(() => {
     setIsLoading(false);
   }, [activeTrack]);
 
-  const toggleDrawer =
-    (open: boolean) => (event: React.KeyboardEvent | React.MouseEvent) => {
-      if (
-        event &&
-        event.type === 'keydown' &&
-        ((event as React.KeyboardEvent).key === 'Tab' ||
-          (event as React.KeyboardEvent).key === 'Shift')
-      ) {
-        return;
-      }
-
-      setTogglePlayer(open);
-    };
+  React.useEffect(() => {
+    setIsVisible(visible);
+  }, [visible]);
 
   return (
     <>
-      <Box sx={{ position: 'absolute', right: 25, top: 25 }}>
-        <IconButton
-          sx={{
-            color: BASE_COLOR,
-            border: `2px solid ${BASE_COLOR}`,
-            '&:hover': {
-              color: 'white',
-              borderColor: 'white',
-            },
-          }}
-          size="small"
-          aria-label="openplayer"
-          onClick={() => setTogglePlayer(true)}
-        >
-          <PlayCircleOutlineIcon sx={{ fontSize: { xs: 16, md: 20 } }} />
-        </IconButton>
-      </Box>
       <Drawer
         anchor="right"
-        open={togglePlayer}
+        open={isVisible}
         keepMounted={true}
-        onClose={() => setTogglePlayer(false)}
+        onClose={() => {
+          onClose();
+        }}
       >
         <Stack sx={{ width: 300, flex: 1 }}>
           <Stack sx={{ py: 1 }} direction="column">
@@ -91,7 +79,7 @@ export const Player: React.FC<PlayerProps> = ({
                   disabled={activeTrack?.file === track.file}
                   onClickCapture={() => {
                     setIsLoading(true);
-                    onPlayClick(track);
+                    handlePlayTrack(track);
                   }}
                 >
                   {activeTrack?.file === track.file ? (
@@ -125,7 +113,7 @@ export const Player: React.FC<PlayerProps> = ({
             sx={{ flex: 1 }}
           >
             <Divider />
-            <PlayerControls track={activeTrack} />
+            <PlayerControls track={activeTrack} paused={paused} />
           </Stack>
         </Stack>
       </Drawer>

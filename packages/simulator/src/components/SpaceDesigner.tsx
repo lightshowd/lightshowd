@@ -2,6 +2,7 @@ import * as React from 'react';
 
 import { useIOCanvas } from '@lightshowd/core/hooks';
 import { io as ioClient } from 'socket.io-client';
+import { MidiIORouter } from '@lightshowd/core/MidiIORouter';
 
 import Konva from 'konva';
 
@@ -14,18 +15,16 @@ import { initialMappings, initialElements, initialLayout } from '../_defaults';
 import { scaleVideo, isMobile } from '../helpers';
 import { Box } from '@mui/material';
 import { LoadingModal } from './LoadingModal';
-import PlayCircleIcon from '@mui/icons-material/PlayCircleOutline';
-import { PlayerContainer } from '@lightshowd/player/components/PlayerContainer';
+import { useStorage } from '../hooks/useStorage';
 
 const io = ioClient('http://localhost:3000');
+const midiIO = new MidiIORouter();
 
 const SpaceDesigner: React.FC<{
   space: any;
+  input: 'midi' | 'player';
   editable?: boolean;
-}> = ({ space, editable = false }) => {
-  const editMode = React.useRef<'drawing' | 'pan' | 'settings'>('drawing');
-
-  const [tool, setTool] = React.useState<string>('pen');
+}> = ({ space, input = 'player', editable = false }) => {
   const [loadingModal, setLoadingModal] = React.useState(false);
   // Layout state persisted to storage
   const [canvasLayoutState, setCanvasLayoutState] = React.useState<{
@@ -57,16 +56,24 @@ const SpaceDesigner: React.FC<{
   }>();
 
   const [isGroupDragging, setIsGroupDragging] = React.useState(false);
-  const [isPlaying, setIsPlaying] = React.useState(false);
+
   // Is the canvas untouched?
   const isInitialStateRef = React.useRef(false);
 
   const userActionRef = React.useRef<CanvasAction>();
   const mappedChannelsRef = React.useRef([]);
-  const playerRef = React.useRef<any>();
+
+  const { getItem, storeItem } = useStorage({ spaceId: space.id });
+
+  const ioInput = React.useMemo(() => {
+    const newInput = input === 'midi' ? midiIO : io;
+    newInput.removeAllListeners();
+
+    return newInput;
+  }, [input]);
 
   const { setElements: setIOElements } = useIOCanvas({
-    clientOverride: io,
+    clientOverride: ioInput,
   });
 
   const selectedMapping = mappingsState?.find(
@@ -84,17 +91,16 @@ const SpaceDesigner: React.FC<{
         )
         .flat();
 
-      const serializedCanvasLayout = window.localStorage.getItem(
-        `space:${space.id}:layout`
-      );
+      const savedLayout = getItem('layout');
+      const savedElements = getItem('elements');
+      const savedMappings = getItem('mappings');
 
-      if (serializedCanvasLayout) {
-        const deserializedLayout = JSON.parse(serializedCanvasLayout);
-        if (!deserializedLayout.video) {
-          deserializedLayout.video = scaleVideo(window);
+      if (savedLayout) {
+        if (!savedLayout.video) {
+          savedLayout.video = scaleVideo(window);
         }
-        setCanvasLayoutState(deserializedLayout);
-        setCanvasLayoutRefreshState(deserializedLayout);
+        setCanvasLayoutState(savedLayout);
+        setCanvasLayoutRefreshState(savedLayout);
       } else {
         isInitialStateRef.current = true;
         setCanvasLayoutState({ ...initialLayout, video: scaleVideo(window) });
@@ -104,25 +110,16 @@ const SpaceDesigner: React.FC<{
         });
       }
 
-      const serializedCanvasElements = window.localStorage.getItem(
-        `space:${space.id}:elements`
-      );
-
-      if (serializedCanvasElements) {
-        const deserializedElements = JSON.parse(serializedCanvasElements);
-        setCanvasElementsState(deserializedElements);
-        setCanvasElementsRefreshState(deserializedElements);
+      if (savedElements) {
+        setCanvasElementsState(savedElements);
+        setCanvasElementsRefreshState(savedElements);
       } else {
         setCanvasElementsState(initialElements);
         setCanvasElementsRefreshState(initialElements);
       }
 
-      const serializedMappings = window.localStorage.getItem(
-        `space:${space.id}:mappings`
-      );
-
-      if (serializedMappings) {
-        setMappingsState(JSON.parse(serializedMappings));
+      if (savedMappings) {
+        setMappingsState(savedMappings);
       } else {
         setMappingsState(initialMappings);
       }
@@ -260,6 +257,33 @@ const SpaceDesigner: React.FC<{
       setIsGroupDragging(false);
       return;
     }
+
+    if (action === CanvasAction.Import) {
+      const {
+        contents: {
+          mappings: importedMappings,
+          elements: importedElements,
+          layout: importedLayout,
+        },
+        spaceId,
+      } = payload;
+      if (importedLayout) {
+        storeItem('layout', importedLayout);
+        setCanvasLayoutState(importedLayout);
+        setCanvasLayoutRefreshState(importedLayout);
+      }
+
+      if (importedElements) {
+        storeItem('elements', importedElements);
+        setCanvasElementsState(importedElements);
+        setCanvasElementsRefreshState(importedElements);
+      }
+
+      if (importedMappings) {
+        storeItem('mappings', importedMappings);
+        setMappingsState(importedMappings);
+      }
+    }
   };
 
   const updateMappings = React.useCallback(
@@ -279,28 +303,19 @@ const SpaceDesigner: React.FC<{
 
   React.useMemo(() => {
     if (userActionRef.current) {
-      window.localStorage.setItem(
-        `space:${space.id}:elements`,
-        JSON.stringify(canvasElementsState)
-      );
+      storeItem('elements', canvasElementsState);
     }
   }, [canvasElementsState]);
 
   React.useMemo(() => {
     if (userActionRef.current) {
-      window.localStorage.setItem(
-        `space:${space.id}:mappings`,
-        JSON.stringify(mappingsState)
-      );
+      storeItem('mappings', mappingsState);
     }
   }, [mappingsState]);
 
   React.useMemo(() => {
     if (userActionRef.current) {
-      window.localStorage.setItem(
-        `space:${space.id}:layout`,
-        JSON.stringify(canvasLayoutState)
-      );
+      storeItem('layout', canvasLayoutState);
     }
   }, [canvasLayoutState]);
 
@@ -326,70 +341,16 @@ const SpaceDesigner: React.FC<{
               top: { xs: -200, sm: 0 },
               bottom: 0,
               right: 0,
-              // display: 'flex',
-              // flexDirection: 'column',
-              // justifyContent: 'center',
             }}
           >
             <SpaceCanvas
               space={space}
-              editMode={tool === 'pen' ? 'drawing' : tool}
+              editMode={'drawing'}
               elements={canvasElementsRefreshState}
               layout={canvasLayoutRefreshState}
-              isPlaying={isPlaying}
               onChange={handleCanvasChange}
             />
-            <Box
-              sx={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-              }}
-            >
-              {!isPlaying && isMobile && isInitialStateRef.current === true && (
-                <PlayCircleIcon
-                  aria-role="button"
-                  onClick={() => {
-                    if (playerRef.current) {
-                      playerRef.current.playVideo();
-                    }
-                  }}
-                  sx={{
-                    color: 'white',
-                    opacity: 0.5,
-                    fontSize: 64,
-                    cursor: 'pointer',
-                    '&:hover': {
-                      opacity: 1,
-                    },
-                  }}
-                />
-              )}
-            </Box>
           </Box>
-          {/* <YTPortal
-            {...canvasLayoutRefreshState?.video}
-            onChange={(_, { action, payload }) => {
-              if (action === 'playing') {
-                setIsPlaying(payload as boolean);
-                return;
-              }
-
-              if (action === 'move') {
-                setCanvasLayoutState({
-                  ...canvasLayoutState,
-                  video: { ...payload },
-                });
-              }
-
-              if (action === 'load') {
-                playerRef.current = payload;
-              }
-            }}
-          /> */}
-          {/* @ts-ignore */}
-          <PlayerContainer />
           <LoadingModal open={loadingModal} />
         </>
       )}

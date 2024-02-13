@@ -46,3 +46,35 @@ export function processImagePaste(e, callback) {
     callback(e);
   }
 }
+
+export function processFileDrop(e: DragEvent, callback) {
+  if (e.dataTransfer !== null) {
+    const { files } = e.dataTransfer; // Array of all files
+    const matchingUpload = Array.from(files).find(
+      (file) =>
+        file.type === 'application/json' && file.name.endsWith('.space.json')
+    );
+    if (!matchingUpload) {
+      return;
+    }
+
+    const yes = window.confirm(`Are you sure you want to load the space?`);
+    if (!yes) {
+      return;
+    }
+
+    const importSpaceId = matchingUpload.name.split('.')[0];
+
+    const reader = new FileReader();
+    reader.addEventListener('load', (ev) => {
+      const result = ev.target.result;
+      try {
+        const contents = JSON.parse(result as string);
+        callback(null, { spaceId: importSpaceId, contents });
+      } catch (ex) {
+        callback(ex);
+      }
+    });
+    reader.readAsText(matchingUpload);
+  }
+}

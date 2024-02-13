@@ -15,4 +15,6 @@ export const commands = [
   ['Delete', 'Delete a selected element'],
   ['Cmd+Delete', 'Clear/reset the space'],
   ['Cmd+V (clipboard)', 'Paste in a new background image'],
+  ['Ctrl+W', 'Hide all emements'],
+  ['Ctrl+Shift+W', 'Show all elements'],
 ];
