@@ -48,7 +48,7 @@ export class MidiIORouter {
 
   callbackList: { [ev: string]: ((...args: any[]) => any)[] } = {};
 
-  on(eventName: string, callback: () => any) {
+  on(eventName: string, callback: (...params: any) => any) {
     const callbacks = this.callbackList[eventName] ?? [];
     callbacks.push(callback);
     this.callbackList[eventName] = callbacks;
@@ -63,7 +63,6 @@ export class MidiIORouter {
 
   removeAllListeners() {
     this.callbackList = {};
-    window.removeEventListener('keypress', this.onKeyCommand);
   }
 
   onMIDIFailure() {

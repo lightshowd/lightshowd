@@ -7,9 +7,5 @@ echo "Building core..."
 yarn workspace @lightshowd/core build
 echo "Building gpio-client..."
 yarn workspace @lightshowd/gpio-client build
-echo "Building simulator..."
-yarn workspace @lightshowd/simulator build
-echo "Building player..."
-yarn workspace @lightshowd/player build
 echo "Building server..."
 yarn workspace @lightshowd/server build

@@ -33,10 +33,10 @@ export interface SpaceClient {
   id: string;
   type?: 'pi' | 'esp' | 'arduino';
   octave?: string | number;
-  channels: number;
-  notes: string[][];
+  channels: number | { notes: string[]; channel: number }[];
+  notes?: string[][];
   dimmableNotes?: string[][];
-  elements: Partial<Element>[];
+  elements?: Partial<Element>[];
 }
 
 export interface Space {

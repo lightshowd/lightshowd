@@ -56,67 +56,65 @@ export const Player: React.FC<PlayerProps> = ({
   }, [visible]);
 
   return (
-    <>
-      <Drawer
-        anchor="right"
-        open={isVisible}
-        keepMounted={true}
-        onClose={() => {
-          onClose();
-        }}
-      >
-        <Stack sx={{ width: 300, flex: 1 }}>
-          <Stack sx={{ py: 1 }} direction="column">
-            {tracks.map((track) => (
-              <Stack
-                key={track.file}
-                spacing={1}
-                direction="row"
-                alignItems="center"
-                sx={{ px: 1 }}
+    <Drawer
+      anchor="right"
+      open={isVisible}
+      keepMounted={true}
+      onClose={() => {
+        onClose();
+      }}
+    >
+      <Stack sx={{ width: 300, flex: 1 }}>
+        <Stack sx={{ py: 1 }} direction="column">
+          {tracks.map((track) => (
+            <Stack
+              key={track.file}
+              spacing={1}
+              direction="row"
+              alignItems="center"
+              sx={{ px: 1 }}
+            >
+              <IconButton
+                disabled={activeTrack?.file === track.file}
+                onClickCapture={() => {
+                  setIsLoading(true);
+                  handlePlayTrack(track);
+                }}
               >
-                <IconButton
-                  disabled={activeTrack?.file === track.file}
-                  onClickCapture={() => {
-                    setIsLoading(true);
-                    handlePlayTrack(track);
-                  }}
-                >
-                  {activeTrack?.file === track.file ? (
-                    <GraphicEqIcon htmlColor="green" />
-                  ) : (
-                    <PlayCircleOutlineIcon />
-                  )}
-                </IconButton>
-                {isLoading && (
-                  <CircularProgress
-                    size={28}
-                    sx={{
-                      left: 6,
-                      color: 'green',
-                      position: 'absolute',
-                      zIndex: 1,
-                    }}
-                  />
+                {activeTrack?.file === track.file ? (
+                  <GraphicEqIcon />
+                ) : (
+                  <PlayCircleOutlineIcon />
                 )}
-                <Typography variant="subtitle2">
-                  {track.name} / {track.artist}
-                </Typography>
-              </Stack>
-            ))}
-          </Stack>
+              </IconButton>
+              {isLoading && (
+                <CircularProgress
+                  size={28}
+                  sx={{
+                    left: 6,
 
-          <Stack
-            spacing={1}
-            justifyContent="flex-end"
-            alignItems="stretch"
-            sx={{ flex: 1 }}
-          >
-            <Divider />
-            <PlayerControls track={activeTrack} paused={paused} />
-          </Stack>
+                    position: 'absolute',
+                    zIndex: 1,
+                  }}
+                />
+              )}
+              <Typography variant="subtitle2">
+                {track.name} / {track.artist}
+              </Typography>
+            </Stack>
+          ))}
         </Stack>
-      </Drawer>
-    </>
+
+        <Stack
+          spacing={1}
+          justifyContent="flex-end"
+          alignItems="stretch"
+          sx={{ flex: 1 }}
+        >
+          <Divider />
+          <PlayerControls track={activeTrack} paused={paused} />
+        </Stack>
+      </Stack>
+    </Drawer>
   );
 };

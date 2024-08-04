@@ -9,8 +9,10 @@
   "license": "LGPL-3.0-only",
   "scripts": {
     "build": "./scripts/build-all.sh",
+    "build:player": "yarn workspace @lightshowd/player build",
     "start": "yarn workspace @lightshowd/server start",
-    "dev": "yarn workspace @lightshowd/server dev"
+    "dev": "yarn workspace @lightshowd/server dev",
+    "postinstall": "./patches/patch-packages.sh && echo \"Patched packages.\""
   },
   "devDependencies": {
     "@types/node": "^16.11.9",

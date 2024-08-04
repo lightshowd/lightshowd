@@ -16,10 +16,12 @@ export enum MidiPlayerEvent {
 export enum MidiEvent {
   NoteOn = 'Note on',
   NoteOff = 'Note off',
+  SetTempo = 'Set Tempo',
 }
 
 interface NoteOnEvent extends MidiPlayer.Event {
   length?: number;
+  lengthTicks?: number;
   cancelled?: boolean;
   sameNotes?: string[];
   sameNoteNums?: number[];
@@ -38,7 +40,7 @@ export class Midi {
   /**
    * A map of all NoteOn events and their expected length/duration
    */
-  public noteTimeMappings: any[] = [];
+  public noteTimeMappings: NoteOnEvent[] = [];
   public logger: Logger;
   public timeRanges: {
     time: number;
@@ -93,6 +95,10 @@ export class Midi {
       })
       .on(MidiPlayerEvent.MidiEvent, (midiEvent: MidiPlayer.Event) => {
         this.logger.verbose({ msg: 'raw_event', payload: midiEvent });
+        if (midiEvent.name === MidiEvent.SetTempo) {
+          this.logger.info({ msg: 'raw_event', payload: midiEvent });
+        }
+
         let { name } = midiEvent;
         const { noteName, noteNumber, tick, velocity = 0 } = midiEvent;
         if (!noteNumber || !noteName) {
@@ -130,6 +136,9 @@ export class Midi {
         if (name === MidiEvent.NoteOff) {
           io.emit(IOEvent.NoteOff, noteName, noteNumber);
         }
+        if (name === MidiEvent.SetTempo) {
+          io.emit(IOEvent.TempoChange, midiEvent.data);
+        }
       })
       .on(MidiPlayerEvent.EndOfFile, () => {
         io.emit(IOEvent.MidiFileEnd);
@@ -149,6 +158,10 @@ export class Midi {
 
   play(options = { loop: false }) {
     this.midiPlayer.play();
+    this.io.emit(
+      IOEvent.MidiPlay,
+      this.getTimeMatchingTick(this.midiPlayer.getCurrentTick())
+    );
     if (options.loop) {
       this.once(MidiPlayerEvent.EndOfFile, () => {
         setTimeout(() => {
@@ -175,7 +188,11 @@ export class Midi {
   seek(time: number) {
     const seekMidiTicks = this.getTickMatchingTime(time);
     const nearestTempoEvent = this.getNearestTempoEvent(time);
-    this.logger.debug(`Seeking midi to ticks ${seekMidiTicks}`);
+    this.logger.debug(
+      `Seeking midi to ticks ${seekMidiTicks} w tempo ${
+        nearestTempoEvent?.tempo ?? '<base tempo>'
+      }`
+    );
 
     this.midiPlayer.skipToTick(seekMidiTicks);
 
@@ -187,7 +204,7 @@ export class Midi {
 
   seekByTick(tick: number) {
     const nearestTempo = this.getNearestTempoByTick(tick);
-    this.logger.debug(`Seeking midi to ticks ${tick}`);
+    this.logger.debug(`Seeking midi to ticks ${tick} w/ tempo ${nearestTempo}`);
 
     this.midiPlayer.skipToTick(tick);
 
@@ -268,14 +285,13 @@ export class Midi {
 
         // Check for current tempo
         const currentTempoEvent = tempoMap.find(
-          (ev) => ev.tick < pairedNote.tick
+          (ev) => ev.tick < Math.max(pairedNote.tick, 1) // if tick is 0, use 1
         );
 
         if (currentTempoEvent?.data) {
           const tickMs = this.getTickMs(division, currentTempoEvent.data);
-          pairedNote.length = Math.floor(
-            tickMs * (event.tick - pairedNote.tick)
-          );
+          pairedNote.lengthTicks = event.tick - pairedNote.tick;
+          pairedNote.length = Math.floor(tickMs * pairedNote.lengthTicks);
         }
       }
       // flip order
@@ -320,6 +336,16 @@ export class Midi {
     return ticksWithinRange + startRange.tick - 1;
   }
 
+  public getTimeMatchingTick(tick: number) {
+    const startRange = this.timeRanges.find((r) => tick > r.tick);
+
+    if (!startRange) {
+      return 0;
+    }
+
+    return startRange.time + (tick - startRange.tick) * startRange.tickMs;
+  }
+
   public getNearestTempoEvent(seconds: number) {
     const milliseconds = seconds * 1000;
     const startRange = this.timeRanges.find((r) => milliseconds > r.time);
@@ -344,7 +370,7 @@ export class Midi {
     return this.midiPlayer.getCurrentTick();
   }
 
-  private getTickMs(division: number, tempo: number) {
+  public getTickMs(division: number, tempo: number) {
     return 60000 / (tempo * division);
   }
 

@@ -13,6 +13,10 @@ export enum IOEvent {
   MidiFileLoaded = 'midi:file-loaded',
   MidiFileEnd = 'midi:file-end',
   MidiSync = 'midi:sync',
+  MidiPlay = 'midi:play',
   MapNotes = 'notes:map',
   ClientRegister = 'client:register',
+  DebugOn = 'debug:on',
+  DebugOff = 'debug:off',
+  TempoChange = 'tempo:change',
 }

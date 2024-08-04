@@ -58,6 +58,12 @@ export class ControlCenter extends EventEmitter {
         return;
       }
 
+      if (socket.handshake.auth?.id === 'passthrough') {
+        this.logger.info({ msg: 'Registering pass through emitter' });
+        this.bindPassThroughEvents(socket);
+        return;
+      }
+
       socket.once(IOEvent.ClientRegister, async (clientId) => {
         this.logger.info({ msg: 'Client registered', clientId });
         const space = this.spaceCache.getClient(clientId);
@@ -153,8 +159,16 @@ export class ControlCenter extends EventEmitter {
       this.spaceCache.clients
         .filter((c) => !mappedClientIds.includes(c.id))
         .forEach((c) => {
-          const notesString = getNotesString(c.notes);
-          const noteNumbersString = getNoteNumbersString(c.notes);
+          let notes: string[] | string[][] | undefined = c.notes;
+          if (!notes && typeof c.channels !== 'number') {
+            notes = c.channels.flatMap((c) => c.notes);
+          }
+
+          if (!notes) {
+            return;
+          }
+          const notesString = getNotesString(notes);
+          const noteNumbersString = getNoteNumbersString(notes);
 
           this.logger.info({
             msg: 'Remapping notes',
@@ -392,6 +406,19 @@ export class ControlCenter extends EventEmitter {
       setTimeout(() => {
         this.playlist.loadPlaylist();
       });
+    });
+  }
+
+  private bindPassThroughEvents(socket: Socket) {
+    this.logger.debug(
+      'Socket connection for passthrough controls established.'
+    );
+    socket.onAny((event, ...args) => {
+      this.io.emit(event, ...args);
+    });
+
+    socket.on('disconnect', () => {
+      this.logger.debug('Pass through disconnected.');
     });
   }
 

@@ -6,6 +6,7 @@ import { io } from 'socket.io-client';
 import type Konva from 'konva';
 import { Element } from '../Space';
 import { EffectType } from '../EffectType';
+import { getNoteName } from '../Note';
 
 let socketClient;
 
@@ -21,6 +22,8 @@ export const useIOCanvas = ({
   clientOverride,
 }: IOCanvasOptions = {}) => {
   const trackPlayingRef = React.useRef(false);
+  const debugModeRef = React.useRef(false);
+  const listenerRef = React.useRef<Function>();
   const [elements, setElements] = React.useState<Element[]>([]);
 
   // Dictionary for fast canvas element access
@@ -30,6 +33,13 @@ export const useIOCanvas = ({
   const indexingCache = React.useRef<{
     [id: string]: { offset: number; limit: number; currIndex: number };
   }>({});
+
+  const onChange = React.useCallback(
+    (...params) => {
+      listenerRef.current?.(...params);
+    },
+    [listenerRef.current]
+  );
 
   const hideElements = () => {
     Object.values(elementCache.current).forEach((canvasEl) => {
@@ -122,6 +132,7 @@ export const useIOCanvas = ({
       hideElements();
     }
 
+    console.log({ socketClient });
     socketClient
       .on(IOEvent.TrackStart, () => {
         trackPlayingRef.current = true;
@@ -131,10 +142,18 @@ export const useIOCanvas = ({
         trackPlayingRef.current = false;
         lightsOn();
       })
+      .on(IOEvent.DebugOn, () => {
+        debugModeRef.current = true;
+      })
+      .on(IOEvent.DebugOff, () => {
+        debugModeRef.current = false;
+      })
       .on(IOEvent.NoteOn, (note, velocity, length = 0, sameNotes) => {
+        // console.log({ note, velocity, length, sameNotes });
         const notes = [note];
         if (sameNotes) {
-          notes.push(...sameNotes);
+          // @TODO revisit as this may not be performant
+          notes.push(...sameNotes.split(',').map((n) => getNoteName(n)));
         }
         const noteEls = elements.filter((el) =>
           el.notes.some((n) => notes.includes(n))
@@ -166,6 +185,17 @@ export const useIOCanvas = ({
               opacity: 1,
               duration: isDimmable && !disableDimming ? length * 0.001 : 0,
             });
+
+            if (debugModeRef.current === true) {
+              const { clientId, channel } = el;
+              onChange(null, {
+                action: 'group:select',
+                payload: {
+                  id: canvasEl.id(),
+                  rect: canvasEl.getClientRect(),
+                },
+              });
+            }
           });
 
           return;
@@ -193,14 +223,29 @@ export const useIOCanvas = ({
             opacity: 0,
             duration: 0,
           });
+
+          if (debugModeRef.current === true) {
+            onChange(null, {
+              action: 'group:deselect',
+              payload: {
+                id: canvasEl.id(),
+              },
+            });
+          }
         });
       });
+
     return () => {
       socketClient.removeAllListeners();
     };
   }, [elements, clientOverride]);
 
-  return { setElements };
+  return {
+    setElements,
+    setListener: (callback) => {
+      listenerRef.current = callback;
+    },
+  };
 };
 
 function cloneGroupEls(elements, elementCache) {

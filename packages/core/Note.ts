@@ -31,14 +31,14 @@ export function getNoteNumber(noteName) {
   return octave * 12 + 12 + noteIndex;
 }
 
-export function getNotesString(notes: string | string[][]) {
+export function getNotesString(notes: string | string[] | string[][]) {
   if (typeof notes === 'string') {
     return notes;
   }
   return notes.flat().join(',');
 }
 
-export function getNotesArray(notes: string | string[][]) {
+export function getNotesArray(notes: string | string[] | string[][]) {
   if (typeof notes === 'string') {
     return notes.split(',');
   }
@@ -49,7 +49,7 @@ export function mergeNotes(destination: string[], source: string | string[][]) {
   const sourceArray = getNotesArray(source);
   return union(destination, sourceArray);
 }
-export function getNoteNumbersString(notes: string | string[][]) {
+export function getNoteNumbersString(notes: string | string[] | string[][]) {
   if (typeof notes === 'string') {
     return notes
       .split(',')

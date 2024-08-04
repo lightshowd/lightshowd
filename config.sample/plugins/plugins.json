@@ -1,9 +1,5 @@
 [
   {
-    "name": "@lightshowd/simulator",
-    "type": "nextjs"
-  },
-  {
     "name": "@lightshowd/player",
     "type": "nextjs"
   }

@@ -13,14 +13,14 @@ export const PlayerContainer: React.FC<{}> = () => {
     <>
       <Box sx={{ position: 'absolute', right: 25, top: 25 }}>
         <IconButton
-          sx={{
-            color: BASE_COLOR,
-            border: `2px solid ${BASE_COLOR}`,
-            '&:hover': {
-              color: 'white',
-              borderColor: 'white',
-            },
-          }}
+          // sx={{
+          //   color: BASE_COLOR,
+          //   border: `2px solid ${BASE_COLOR}`,
+          //   '&:hover': {
+          //     color: 'white',
+          //     borderColor: 'white',
+          //   },
+          // }}
           size="small"
           aria-label="openplayer"
           onClick={() => setTogglePlayer(true)}

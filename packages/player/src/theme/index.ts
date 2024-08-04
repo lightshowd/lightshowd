@@ -1,21 +1,10 @@
 import { createTheme } from '@mui/material/styles';
 import { red } from '@mui/material/colors';
 
-let theme = createTheme({});
+let theme = createTheme({ palette: { mode: 'dark' } });
 
 // Create a theme instance.
 theme = createTheme(theme, {
-  palette: {
-    primary: {
-      main: '#1C1C1C',
-    },
-    secondary: {
-      main: '#A4A4A4',
-    },
-    error: {
-      main: red.A400,
-    },
-  },
   components: {
     MuiCard: {
       defaultProps: {
