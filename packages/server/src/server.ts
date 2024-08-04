@@ -14,20 +14,22 @@ import { Logger } from '@lightshowd/core/Logger';
 import { ControlCenter } from '@lightshowd/core/ControlCenter';
 import { Playlist } from '@lightshowd/core/Playlist';
 import { SpaceCache } from '@lightshowd/core/Space';
-import {SMSConfig} from "@lightshowd/core/SMSController";
-import {LogLevel} from "@lightshowd/core/Logger";
+import { SMSConfig } from '@lightshowd/core/SMSController';
+import { LogLevel } from '@lightshowd/core/Logger';
 
-
-
-import { playlistRouter, controlCenterRouter, diagnosticsRouter } from './routes';
+import {
+  playlistRouter,
+  controlCenterRouter,
+  diagnosticsRouter,
+} from './routes';
 
 const plugins = loadPlugins();
 
 const {
   SMS_PROVIDER = 'none',
-  TRACKS_PATH = '../../config/tracks',
-  ELEMENTS_PATH = '../../config/elements',
-  SPACES_PATH = '../../config/spaces',
+  TRACKS_PATH = './tracks',
+  ELEMENTS_PATH = './elements',
+  SPACES_PATH = './spaces',
   SPACE_FILE = 'spaces.json',
   PORT = '3000',
   LOG_LEVELS = '*',

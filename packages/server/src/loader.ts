@@ -3,7 +3,7 @@ import { resolve } from 'path';
 
 import { Logger } from '@lightshowd/core/Logger';
 
-const { PLUGINS_PATH = '../../config/plugins' } = process.env;
+const { PLUGINS_PATH = './plugins' } = process.env;
 
 interface Plugin {
   path: string;

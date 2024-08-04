@@ -31,7 +31,7 @@ diagnosticsRouter.get('/diagnostics/io', async (ctx) => {
     ctx.body = {
       event,
       note,
-      noteNumber: getNoteNumber(note),
+      noteNumber: getNoteNumber(note as string),
       sameNotes,
       length,
       velocity,

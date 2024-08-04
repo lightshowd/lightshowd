@@ -19,13 +19,13 @@ export const dimmableNotes = [
   'B6',
 ];
 
-export function getNoteName(noteNumber) {
+export function getNoteName(noteNumber: number) {
   const octave = Math.floor(noteNumber / 12) - 1;
   const note = NOTES[noteNumber % 12];
   return `${note}${octave}`;
 }
 
-export function getNoteNumber(noteName) {
+export function getNoteNumber(noteName: string) {
   const octave = Number(noteName.replace(/[a-g]+/i, ''));
   const noteIndex = NOTES.findIndex((n) => noteName.includes(n));
   return octave * 12 + 12 + noteIndex;
