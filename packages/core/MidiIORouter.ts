@@ -4,14 +4,17 @@ import { getNoteName } from './Note';
 export class MidiIORouter {
   constructor() {
     // @ts-ignore
-    window.navigator.requestMIDIAccess().then(
-      (access) => {
-        this.onMIDISuccess(access);
-      },
-      (err) => {
-        this.onMIDIFailure();
-      }
-    );
+    if (!window.navigator.userAgent.includes('Safari')) {
+      // @ts-ignore
+      window.navigator.requestMIDIAccess().then(
+        (access) => {
+          this.onMIDISuccess(access);
+        },
+        (err) => {
+          this.onMIDIFailure();
+        }
+      );
+    }
   }
 
   onMIDISuccess(midiAccess: any) {

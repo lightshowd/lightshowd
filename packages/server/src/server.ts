@@ -6,6 +6,7 @@ import Router from '@koa/router';
 import bodyParser from 'koa-bodyparser';
 import serve from 'koa-static';
 import path from 'path';
+import fs from 'fs';
 
 import { loadPlugins } from './loader';
 import { LeafClient } from './LeafClient';
@@ -38,14 +39,22 @@ const {
 
 let leafClient: LeafClient;
 
+const logger = new Logger({
+  level:
+    LOG_LEVELS !== '*'
+      ? (LOG_LEVELS.split(',') as LogLevel[])
+      : ('*' as LogLevel),
+});
+
 (async () => {
+  checkAndInitFolders();
   const nextPlugins = plugins.filter((p) => p.type === 'nextjs');
 
   for (const nextPlugin of nextPlugins) {
     await nextPlugin.instance?.prepare();
   }
 
-  const playlist = new Playlist({ path: TRACKS_PATH });
+  const playlist = new Playlist({ path: TRACKS_PATH, logger });
 
   try {
     playlist.loadPlaylist();
@@ -58,12 +67,6 @@ let leafClient: LeafClient;
   const router = new Router();
   const server = http.createServer(app.callback());
   const io = new SocketIOServer(server);
-  const logger = new Logger({
-    level:
-      LOG_LEVELS !== '*'
-        ? (LOG_LEVELS.split(',') as LogLevel[])
-        : ('*' as LogLevel),
-  });
 
   const spaceCache = new SpaceCache({ path: SPACES_PATH, logger });
   spaceCache.loadSpaces(SPACE_FILE);
@@ -168,5 +171,31 @@ let leafClient: LeafClient;
     .use(router.routes());
 
   await server.listen(Number(PORT));
-  console.log('Service started');
+  logger.info({ msg: 'Server started', port: PORT });
 })();
+
+function checkAndInitFolders() {
+  if (!fs.existsSync(TRACKS_PATH)) {
+    fs.mkdirSync(TRACKS_PATH, { recursive: true });
+    fs.writeFileSync(
+      `${TRACKS_PATH}/playlist.json`,
+      JSON.stringify([], null, 2)
+    );
+
+    logger.info({
+      msg: 'Created tracks folder. Remember to add tracks to playlist.json!',
+      path: TRACKS_PATH,
+    });
+  }
+
+  if (!fs.existsSync(SPACES_PATH)) {
+    fs.mkdirSync(SPACES_PATH, { recursive: true });
+
+    fs.writeFileSync(`${SPACES_PATH}/spaces.json`, JSON.stringify([], null, 2));
+
+    logger.info({
+      msg: 'Created spaces folder. Remember to download a spaces.json file from the simulator!',
+      path: SPACES_PATH,
+    });
+  }
+}

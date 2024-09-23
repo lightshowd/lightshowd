@@ -49,6 +49,8 @@ export class Midi {
     tempo: number;
   }[] = [];
 
+  public endOfTrackEvent?: MidiPlayer.Event;
+
   private callbackList: { [ev: string]: (() => any)[] } = {};
   private callackOnceList: { [ev: string]: (() => any)[] } = {};
 
@@ -319,6 +321,9 @@ export class Midi {
     });
 
     this.noteTimeMappings = sortMap.filter((ev) => !ev.cancelled);
+    this.endOfTrackEvent = midiEvents[0].find(
+      (ev) => ev.name === 'End of Track'
+    );
   }
 
   public getTickMatchingTime(seconds: number) {

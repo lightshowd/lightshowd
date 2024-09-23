@@ -4,9 +4,12 @@ const {
   BAND = 'FM',
   MESSAGE_THANK_YOU,
   MESSAGE_WELCOME = '',
+  SOX_PATH,
 } = process.env;
 import * as fs from 'fs';
+import { execFileSync } from 'child_process';
 import { resolve, basename } from 'path';
+import type { Logger } from './Logger';
 
 const lastPlayRangeMS = parseInt(LAST_PLAY_RANGE) * 1000;
 
@@ -28,6 +31,7 @@ export interface Track {
   midi?: string;
   midiEncoded?: string;
   background?: boolean;
+  pad?: number;
 }
 
 type TrackLog = {
@@ -36,6 +40,7 @@ type TrackLog = {
 
 export class Playlist {
   public tracks: Track[] = [];
+  public logger: Logger;
   public currentTrack: Track | null = null;
   public path: string;
   public trackLog: TrackLog;
@@ -44,9 +49,10 @@ export class Playlist {
    */
   public currentMessage: string = '';
 
-  constructor({ path }: { path: string }) {
+  constructor({ path, logger }: { path: string; logger: Logger }) {
     this.path = path;
     this.trackLog = {};
+    this.logger = logger.getGroupLogger('Playlist');
   }
 
   loadPlaylist(file: string = 'playlist.json', showDisabled = false) {
@@ -72,6 +78,8 @@ export class Playlist {
         }
         return t;
       });
+
+    this.logger.info({ msg: 'Playlist loaded', payload: this.tracks });
   }
 
   getTrack(trackName: string) {
@@ -156,14 +164,22 @@ export class Playlist {
 
     let filePath;
     if (type === 'audio') {
-      filePath = `${basePath}.mp3`;
+      filePath = `${basePath}.wav`;
       if (fs.existsSync(filePath)) {
         return filePath;
       }
 
-      filePath = `${basePath}.wav`;
+      filePath = `${basePath}.mp3`;
       if (fs.existsSync(filePath)) {
-        return filePath;
+        this.logger.info({ msg: 'Converting MP3 to WAV...', payload: track });
+        const args = [filePath, `${basePath}.wav`];
+        if (track.pad) {
+          this.logger.info({ msg: 'Adding padding...', payload: track });
+          args.push(...['pad', track.pad]);
+        }
+        execFileSync(SOX_PATH!.replace('/play', '/sox'), args);
+        this.logger.info({ msg: 'Conversion complete', payload: track });
+        return `${basePath}.wav`;
       }
 
       return;

@@ -1,7 +1,7 @@
 export class SimulatorChannel {
   static channel: BroadcastChannel = new BroadcastChannel('simulator');
   static requested: boolean = false;
-  static worker: Worker;
+  static worker: Worker | null;
   static callbackRefs: ((e: any) => void)[] = [];
   static requestSpace(callback) {
     SimulatorChannel.send('space:request', null);
@@ -28,9 +28,7 @@ export class SimulatorChannel {
       return;
     }
     SimulatorChannel.channel.postMessage({ event, data });
-    if (data[0] === 'C1') {
-      console.log({ event, data });
-    }
+
     if (SimulatorChannel.worker) {
       SimulatorChannel.worker.postMessage({ type: event, params: data });
     }
@@ -53,11 +51,33 @@ export class SimulatorChannel {
   static removeListener(callbackRef: (e: any) => void) {
     SimulatorChannel.channel.removeEventListener('message', callbackRef);
   }
+
+  static onWorkerMessage = (e) => {
+    console.log(e);
+  };
+
+  static bindWorker(worker: Worker) {
+    SimulatorChannel.unbindWorker();
+    SimulatorChannel.worker = worker;
+    // SimulatorChannel.worker.addEventListener(
+    //   'message',
+    //   SimulatorChannel.onWorkerMessage
+    // );
+  }
+
+  static unbindWorker() {
+    if (SimulatorChannel.worker) {
+      // SimulatorChannel.worker.removeEventListener(
+      //   'message',
+      //   SimulatorChannel.onWorkerMessage
+      // );
+      SimulatorChannel.worker = null;
+    }
+  }
 }
 
 export class SimulatorChannelRouter {
   constructor() {
-    console.log('add event listener');
     SimulatorChannel.channel.addEventListener('message', (e) => {
       const { event, data } = e.data;
       if (Array.isArray(data)) {
