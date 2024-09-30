@@ -49,12 +49,15 @@ controlCenterRouter.get('/control-center/track/load', async (ctx) => {
 
   const track = controlCenter.playlist.getTrack(trackName as string);
 
+  logger.debug(`Loading track "${track?.name ?? 'not found!'}"`);
+
   if (track) {
     await controlCenter.loadTrack({
       track,
       formats: format ? [format as 'audio' | 'midi'] : undefined,
     });
     ctx.body = `Track loaded`;
+    return;
   }
   ctx.body = `Track "${trackName}" not found.`;
 });

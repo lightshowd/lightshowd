@@ -55,7 +55,10 @@ export class Playlist {
     this.logger = logger.getGroupLogger('Playlist');
   }
 
-  loadPlaylist(file: string = 'playlist.json', showDisabled = false) {
+  loadPlaylist(
+    file: string = 'playlist.json',
+    options: { showDisabled?: boolean; format?: 'wav' | 'mp3' } = {}
+  ) {
     const playlistPath = resolve(this.path, file);
 
     if (!fs.existsSync(playlistPath)) {
@@ -64,12 +67,12 @@ export class Playlist {
 
     const baseFolder = basename(this.path);
 
-    this.tracks = require(playlistPath) as Track[];
-    this.tracks = this.tracks
-      .filter((t) => showDisabled || !t.disabled)
+    let tracks = require(playlistPath) as Track[];
+    tracks = tracks
+      .filter((t) => options?.showDisabled || !t.disabled)
       .map((t) => {
         const midiPath = this.getFilePath(t, 'midi');
-        const audioPath = this.getFilePath(t, 'audio');
+        const audioPath = this.getFilePath(t, 'audio', options.format);
         if (midiPath) {
           t.midi = midiPath.split(`${baseFolder}/`)[1];
         }
@@ -79,7 +82,12 @@ export class Playlist {
         return t;
       });
 
-    this.logger.info({ msg: 'Playlist loaded', payload: this.tracks });
+    if (!options.format) {
+      this.tracks = tracks;
+    }
+
+    this.logger.info({ msg: 'Playlist loaded', payload: tracks });
+    return tracks;
   }
 
   getTrack(trackName: string) {
@@ -159,25 +167,44 @@ export class Playlist {
     this.currentTrack = null;
   }
 
-  getFilePath(track: Track, type: 'audio' | 'midi') {
+  getFilePath(
+    track: Track,
+    type: 'audio' | 'midi',
+    preferredFormat?: 'wav' | 'mp3'
+  ) {
     const basePath = resolve(this.path, track.file);
 
     let filePath;
     if (type === 'audio') {
+      if (preferredFormat) {
+        filePath = `${basePath}.${preferredFormat}`;
+        if (fs.existsSync(filePath)) {
+          return filePath;
+        }
+      }
+
       filePath = `${basePath}.wav`;
       if (fs.existsSync(filePath)) {
         return filePath;
       }
 
+      // Convert mp3 to wav (and pad) by default
       filePath = `${basePath}.mp3`;
-      if (fs.existsSync(filePath)) {
+      if (fs.existsSync(`${basePath}.orig.mp3`) || fs.existsSync(filePath)) {
+        if (!fs.existsSync(`${basePath}.orig.mp3`)) {
+          fs.copyFileSync(filePath, `${basePath}.orig.mp3`);
+        }
         this.logger.info({ msg: 'Converting MP3 to WAV...', payload: track });
-        const args = [filePath, `${basePath}.wav`];
+        const args = [`${basePath}.orig.mp3`, `${basePath}.wav`];
         if (track.pad) {
           this.logger.info({ msg: 'Adding padding...', payload: track });
-          args.push(...['pad', track.pad]);
+          args.push(...['pad', track.pad.toString()]);
         }
         execFileSync(SOX_PATH!.replace('/play', '/sox'), args);
+
+        // Convert wav back to mp3
+        const mp3Args = [`${basePath}.wav`, `${basePath}.mp3`];
+        execFileSync(SOX_PATH!.replace('/play', '/lame'), mp3Args);
         this.logger.info({ msg: 'Conversion complete', payload: track });
         return `${basePath}.wav`;
       }

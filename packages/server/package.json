@@ -9,8 +9,8 @@
     "debug": "DOTENV_CONFIG_PATH=../../config/.env.server ts-node-dev --inspect -r dotenv/config --ignore-watch=.next  --transpile-only  --files ./src/server.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "rm -rf ./dist && tsc",
-    "build:bun": "rm -rf ./dist && bun build ./src/server.ts --outdir ./dist --target bun",
-    "build:bun:exe": "rm -rf ./dist && bun build ./src/server.ts --compile --outfile ./dist/lightshowd-server --target bun"
+    "build:bun": "bun build ./src/server.ts --outdir ./out --target bun",
+    "build:bun:exe": "bun build ./src/server.ts --compile  --minify --sourcemap --outfile ./out/lightshowd-server --target bun"
   },
   "author": "Patrick Dillon <pat@lightshowd.com>",
   "license": "LGPL-3.0-only",

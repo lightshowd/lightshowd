@@ -11,5 +11,6 @@ arduino-cli
 ssl-proxy
 config/
 tconfig.tsbuildinfo
+packages/server/out
 .junk
 *.tsbuildinfo

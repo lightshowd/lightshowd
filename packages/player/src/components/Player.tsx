@@ -37,7 +37,10 @@ export const Player: React.FC<PlayerProps> = ({
     (Track & { paused: boolean }) | null
   >(null);
 
-  const { data: tracks = [], error } = useSwr('/api/playlist', fetcher);
+  const { data: tracks = [], error } = useSwr(
+    '/api/playlist?format=mp3',
+    fetcher
+  );
 
   const handlePlayTrack = (track, action?: string) => {
     fetch(

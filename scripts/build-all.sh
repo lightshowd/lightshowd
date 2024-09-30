@@ -9,3 +9,5 @@ echo "Building gpio-client..."
 yarn workspace @lightshowd/gpio-client build
 echo "Building server..."
 yarn workspace @lightshowd/server build
+echo "Building player..."
+yarn workspace @lightshowd/player build

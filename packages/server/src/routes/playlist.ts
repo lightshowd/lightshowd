@@ -5,11 +5,19 @@ import * as fs from 'fs';
 export const playlistRouter = new Router();
 
 playlistRouter.get('/playlist', async (ctx) => {
+  const format = ctx.query.format as 'mp3' | 'wav' | undefined;
   const showDisabled = ctx.query.showDisabled === 'true';
   const { playlist }: { playlist: Playlist } = ctx.state;
-  if (showDisabled) {
-    playlist.loadPlaylist('playlist.json', showDisabled);
+
+  if (showDisabled || format) {
+    const tracks = playlist.loadPlaylist('playlist.json', {
+      showDisabled,
+      format,
+    });
+    ctx.body = tracks;
+    return;
   }
+
   ctx.body = playlist.tracks;
 });
 
