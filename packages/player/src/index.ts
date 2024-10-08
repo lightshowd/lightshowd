@@ -11,7 +11,7 @@ export default class Player {
   basePath: string;
   constructor() {
     this.nextApp = next({
-      dev: process.env.NODE_ENV !== 'production',
+      dev: process.env.NODE_ENV === 'development',
       dir: resolve(`${__dirname}/..`),
     });
     this.basePath = basePath;

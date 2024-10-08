@@ -1,7 +1,7 @@
 import * as React from 'react';
 
-import { PlayerContainer } from '../components/PlayerContainer';
+import { Listener } from '../components/Listener';
 
 export default function PlayerPage() {
-  return <PlayerContainer />;
+  return <Listener />;
 }

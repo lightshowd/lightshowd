@@ -121,7 +121,6 @@ const logger = new Logger({
   controlCenterRouter.prefix('/api');
   diagnosticsRouter.prefix('/api');
 
-  const tracksServeHandler = serve(path.resolve(TRACKS_PATH));
   const elementsServeHandler = serve(path.resolve(ELEMENTS_PATH));
 
   app
@@ -153,19 +152,41 @@ const logger = new Logger({
       if (ctx.path.startsWith('/audio')) {
         ctx.path = ctx.path.replace('/audio', '');
 
-        // Set this for seeking in Chrome
-        ctx.set('Accept-Ranges', 'bytes');
+        // console.log({ range: ctx.request.get('range'), ip: ctx.request.ip });
+        const requestedRange = ctx.request.get('range');
+        const mp3Path = path.resolve(path.join(TRACKS_PATH, ctx.path));
+        const length = fs.statSync(mp3Path).size;
+        const [start = 0, end = length - 1] = requestedRange
+          .replace('bytes=', '')
+          .split('-')
+          .map((s) => (s ? parseInt(s) : undefined));
 
-        await tracksServeHandler(ctx, next);
-        return;
-      }
-      if (ctx.path.startsWith('/elements')) {
+        ctx.set('Content-Type', 'audio/mpeg');
+        ctx.set('Content-Transfer-Encoding', 'binary');
+        ctx.status = 206;
+
+        if (requestedRange === 'bytes=0-1') {
+          ctx.set('Content-Range', `bytes 0-1/${length}`);
+          ctx.set('Content-Length', '2');
+
+          ctx.body = fs.createReadStream(mp3Path, { start, end });
+
+          return;
+        } else {
+          ctx.set('Content-Length', (end - start + 1).toString());
+          ctx.set('Content-Range', `bytes ${start}-${end}/${length}`);
+
+          ctx.body = fs.createReadStream(mp3Path, { start, end });
+          return;
+        }
+      } else if (ctx.path.startsWith('/elements')) {
         ctx.path = ctx.path.replace('/elements', '');
 
         await elementsServeHandler(ctx, next);
         return;
+      } else {
+        await next();
       }
-      await next();
     })
     // this should be last
     .use(router.routes());

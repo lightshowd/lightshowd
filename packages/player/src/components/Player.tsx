@@ -31,7 +31,7 @@ export const Player: React.FC<PlayerProps> = ({
   visible = true,
   paused = false,
 }) => {
-  const [isLoading, setIsLoading] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState<string | null>(null);
   const [isVisible, setIsVisible] = React.useState(visible);
   const [activeTrack, setActiveTrack] = React.useState<
     (Track & { paused: boolean }) | null
@@ -42,16 +42,16 @@ export const Player: React.FC<PlayerProps> = ({
     fetcher
   );
 
-  const handlePlayTrack = (track, action?: string) => {
+  const handlePlayTrack = React.useCallback((track, action?: string) => {
     fetch(
       `/api/control-center/track/load?track=${track.name}&format=midi`
     ).then(() => {
       setActiveTrack(track);
     });
-  };
+  }, []);
 
   React.useEffect(() => {
-    setIsLoading(false);
+    setIsLoading(null);
   }, [activeTrack]);
 
   React.useEffect(() => {
@@ -80,7 +80,7 @@ export const Player: React.FC<PlayerProps> = ({
               <IconButton
                 disabled={activeTrack?.file === track.file}
                 onClickCapture={() => {
-                  setIsLoading(true);
+                  setIsLoading(track.file);
                   handlePlayTrack(track);
                 }}
               >
@@ -90,7 +90,7 @@ export const Player: React.FC<PlayerProps> = ({
                   <PlayCircleOutlineIcon />
                 )}
               </IconButton>
-              {isLoading && (
+              {isLoading === track.file && (
                 <CircularProgress
                   size={28}
                   sx={{

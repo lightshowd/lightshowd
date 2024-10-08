@@ -7,7 +7,7 @@ import { getNoteNumbersString, getNotesString, mergeNotes } from './Note';
 import { SpaceCache } from './Space';
 import type { Server as SocketIOServer, Socket } from 'socket.io';
 
-import { Playlist, Track } from './Playlist';
+import { Playlist, Track, CurrentTrack } from './Playlist';
 import { IOEvent } from './IOEvent';
 import { Logger } from './Logger';
 import { setTimeout as awaitSetTimeout } from 'timers/promises';
@@ -20,7 +20,8 @@ export class ControlCenter extends EventEmitter {
   public disabledNotes: string[] = [];
   public dimmableNotes: string[] = [];
   public logGroup = 'ControlCenter';
-  private currentTrack: Track | null = null;
+  private currentTrack: CurrentTrack | null = null;
+
   private audioFile: string | null | undefined = null;
   private midiFile: string | null | undefined = null;
   private midiPlayer: Midi | null = null;
@@ -47,7 +48,8 @@ export class ControlCenter extends EventEmitter {
     this.spaceCache = spaceCache;
     this.logger = logger.getGroupLogger(this.logGroup);
     this.io.on('connection', (socket: Socket) => {
-      if (socket.handshake.auth?.id === 'player' && !this.activePlayer) {
+      if (socket.handshake.auth?.id === 'player') {
+        this.logger.info({ msg: 'Registering player' });
         this.bindPlayerSocketEvents(socket);
         return;
       }
@@ -238,6 +240,7 @@ export class ControlCenter extends EventEmitter {
         this.io.emit(IOEvent.TrackStart, track.file);
       }
       this.midiPlayer.play({ loop: !!track.background });
+      this.currentTrack.startTime = new Date().toISOString();
     }
   }
 
@@ -273,18 +276,32 @@ export class ControlCenter extends EventEmitter {
         });
 
       this.audioStream.once('time', (d) => {
-        this.io.emit(IOEvent.TrackStart, track.file);
+        this.currentTrack!.startTime = new Date().toISOString();
+        this.io.emit(
+          IOEvent.TrackStart,
+          track.file,
+          this.currentTrack!.startTime
+        );
+
         if (this.midiPlayer) {
           this.logger.debug('MIDI play started.');
           this.midiPlayer.play({ loop: false });
 
           // Send a follow up to leaf nodes to sync if they started late
           setTimeout(() => {
-            this.io.emit(IOEvent.MidiSync, this.midiPlayer?.getCurrentTick());
+            this.io.emit(IOEvent.TrackSync, {
+              tick: this.midiPlayer?.getCurrentTick(),
+              startTime: this.currentTrack?.startTime,
+              currentTime: new Date().toISOString(),
+            });
           }, 3000);
 
           setTimeout(() => {
-            this.io.emit(IOEvent.MidiSync, this.midiPlayer?.getCurrentTick());
+            this.io.emit(IOEvent.TrackSync, {
+              tick: this.midiPlayer?.getCurrentTick(),
+              startTime: this.currentTrack?.startTime,
+              currentTime: new Date().toISOString(),
+            });
           }, 6000);
         }
       });
@@ -371,6 +388,7 @@ export class ControlCenter extends EventEmitter {
     }
     this.emit(IOEvent.TrackEnd, track);
     this.playlist.clearCurrentTrack();
+    this.currentTrack = null;
   }
 
   setDisabledNotes(disabledNotes: string[]) {
@@ -389,24 +407,34 @@ export class ControlCenter extends EventEmitter {
   }
 
   private bindPlayerSocketEvents(socket: Socket) {
-    this.logger.debug('Socket connection for player controls established.');
-    socket.on(IOEvent.TrackSeek, (time: number) => this.seekTrack(time));
-    socket.on(IOEvent.TrackPause, () => this.pauseTrack());
-    socket.on(IOEvent.TrackResume, (time: number) => this.resumeTrack(time));
-    socket.on(IOEvent.TrackPlay, () => {
-      this.activePlayer = socket.handshake.address;
-      this.playTrack();
-    });
-    socket.on(IOEvent.TrackStop, () => this.stopTrack());
-
-    socket.on('disconnect', () => {
-      this.logger.debug('Player disconnected.');
-      this.stopTrack();
-      // refresh playlist with current active tracks
-      setTimeout(() => {
-        this.playlist.loadPlaylist();
+    if (!this.currentTrack) {
+      this.logger.debug('Socket connection for player controls established.');
+      socket.on(IOEvent.TrackSeek, (time: number) => {
+        this.activePlayer = socket.handshake.address || 'localhost';
+        this.seekTrack(time);
       });
-    });
+      socket.on(IOEvent.TrackPause, () => this.pauseTrack());
+      socket.on(IOEvent.TrackResume, (time: number) => this.resumeTrack(time));
+      socket.on(IOEvent.TrackPlay, () => {
+        this.activePlayer = socket.handshake.address || 'localhost';
+        this.playTrack();
+      });
+      socket.on(IOEvent.TrackStop, () => this.stopTrack());
+
+      // socket.on('disconnect', () => {
+      //   this.logger.debug('Player disconnected.');
+      //   this.stopTrack();
+      //   // refresh playlist with current active tracks
+      //   setTimeout(() => {
+      //     this.playlist.loadPlaylist();
+      //   });
+      // });
+    } else if (this.currentTrack) {
+      socket.on(IOEvent.TrackStatus, () => {
+        socket.emit(IOEvent.TrackStatus, this.currentTrack);
+        console.log('emitting track status', this.currentTrack);
+      });
+    }
   }
 
   private bindPassThroughEvents(socket: Socket) {

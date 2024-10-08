@@ -47,7 +47,7 @@ export class LeafClient {
       controlCenter.playTrack();
     });
 
-    client.on(IOEvent.MidiSync, (tick: number) => {
+    client.on(IOEvent.TrackSync, ({ tick }: { tick: number }) => {
       controlCenter.seekMidiByTick(tick);
     });
 

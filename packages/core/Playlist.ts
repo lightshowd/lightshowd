@@ -34,6 +34,10 @@ export interface Track {
   pad?: number;
 }
 
+export interface CurrentTrack extends Track {
+  startTime?: string;
+}
+
 type TrackLog = {
   [file: string]: Track & { plays: number; lastPlayTime?: number };
 };
