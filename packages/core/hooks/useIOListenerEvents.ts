@@ -24,7 +24,7 @@ export const useIOListenerEvents = ({
   track?: Track;
 }) => {
   if (!socketClient) {
-    socketClient = io({ auth: { id: 'player' } });
+    socketClient = io({ auth: { id: 'listener' } });
   }
 
   const [isIOS, setIsIOS] = React.useState(false);

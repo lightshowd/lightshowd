@@ -96,11 +96,6 @@ export class Midi {
         this.logger.debug('Midi file loaded.');
       })
       .on(MidiPlayerEvent.MidiEvent, (midiEvent: MidiPlayer.Event) => {
-        this.logger.verbose({ msg: 'raw_event', payload: midiEvent });
-        if (midiEvent.name === MidiEvent.SetTempo) {
-          this.logger.info({ msg: 'raw_event', payload: midiEvent });
-        }
-
         let { name } = midiEvent;
         const { noteName, noteNumber, tick, velocity = 0 } = midiEvent;
         if (!noteNumber || !noteName) {
@@ -141,6 +136,8 @@ export class Midi {
         if (name === MidiEvent.SetTempo) {
           io.emit(IOEvent.TempoChange, midiEvent.data);
         }
+
+        this.logger.verbose({ msg: 'raw_event', payload: midiEvent });
       })
       .on(MidiPlayerEvent.EndOfFile, () => {
         io.emit(IOEvent.MidiFileEnd);

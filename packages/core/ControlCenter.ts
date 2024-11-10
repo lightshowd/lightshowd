@@ -54,6 +54,12 @@ export class ControlCenter extends EventEmitter {
         return;
       }
 
+      if (socket.handshake.auth?.id === 'listener') {
+        this.logger.info({ msg: 'Registering listener' });
+        this.bindListenerSocketEvents(socket);
+        return;
+      }
+
       if (socket.handshake.auth?.id === 'leaf') {
         this.logger.info({ msg: 'Registering leaf node' });
         this.bindLeafServerEvents(socket);
@@ -407,34 +413,37 @@ export class ControlCenter extends EventEmitter {
   }
 
   private bindPlayerSocketEvents(socket: Socket) {
-    if (!this.currentTrack) {
+    if (!this.activePlayer) {
       this.logger.debug('Socket connection for player controls established.');
       socket.on(IOEvent.TrackSeek, (time: number) => {
-        this.activePlayer = socket.handshake.address || 'localhost';
+        this.activePlayer = socket.handshake.address;
         this.seekTrack(time);
       });
       socket.on(IOEvent.TrackPause, () => this.pauseTrack());
       socket.on(IOEvent.TrackResume, (time: number) => this.resumeTrack(time));
       socket.on(IOEvent.TrackPlay, () => {
-        this.activePlayer = socket.handshake.address || 'localhost';
+        this.activePlayer = socket.handshake.address;
         this.playTrack();
       });
       socket.on(IOEvent.TrackStop, () => this.stopTrack());
 
-      // socket.on('disconnect', () => {
-      //   this.logger.debug('Player disconnected.');
-      //   this.stopTrack();
-      //   // refresh playlist with current active tracks
-      //   setTimeout(() => {
-      //     this.playlist.loadPlaylist();
-      //   });
-      // });
-    } else if (this.currentTrack) {
-      socket.on(IOEvent.TrackStatus, () => {
-        socket.emit(IOEvent.TrackStatus, this.currentTrack);
-        console.log('emitting track status', this.currentTrack);
+      socket.on('disconnect', () => {
+        this.logger.debug('Player disconnected.');
+        this.activePlayer = null;
       });
+
+      this.bindListenerSocketEvents(socket);
     }
+  }
+
+  private bindListenerSocketEvents(socket: Socket) {
+    socket.on(IOEvent.TrackStatus, () => {
+      if (!this.currentTrack) {
+        return;
+      }
+      socket.emit(IOEvent.TrackStatus, this.currentTrack);
+      console.log('emitting track status', this.currentTrack);
+    });
   }
 
   private bindPassThroughEvents(socket: Socket) {
