@@ -194,7 +194,8 @@ export class Playlist {
 
       // Convert mp3 to wav (and pad) by default
       filePath = `${basePath}.mp3`;
-      if (fs.existsSync(`${basePath}.orig.mp3`) || fs.existsSync(filePath)) {
+      let convertBack = false;
+      if (fs.existsSync(`${basePath}.orig.mp3`) && !fs.existsSync(filePath)) {
         if (!fs.existsSync(`${basePath}.orig.mp3`)) {
           fs.copyFileSync(filePath, `${basePath}.orig.mp3`);
         }
@@ -205,7 +206,10 @@ export class Playlist {
           args.push(...['pad', track.pad.toString()]);
         }
         execFileSync(SOX_PATH!.replace('/play', '/sox'), args);
+        convertBack = true;
+      }
 
+      if (convertBack === true || !fs.existsSync(filePath)) {
         // Convert wav back to mp3
         const mp3Args = [`${basePath}.wav`, `${basePath}.mp3`];
         execFileSync(SOX_PATH!.replace('/play', '/lame'), mp3Args);
