@@ -119,19 +119,14 @@ export class Midi {
           }
 
           const noteArgs = [
-            noteName,
-            noteNumber,
+            [noteNumber, ...(computedLengthEvent.sameNoteNums ?? [])],
             computedLengthEvent.length,
-            computedLengthEvent.sameNoteNums
-              ? computedLengthEvent.sameNoteNums.join(',')
-              : '',
-            // auto off (for dimmer notes)
             this.velocityOverride || velocity,
           ];
           io.emit(IOEvent.NoteOn, ...noteArgs);
         }
         if (name === MidiEvent.NoteOff) {
-          io.emit(IOEvent.NoteOff, noteName, noteNumber);
+          io.emit(IOEvent.NoteOff, [noteNumber]);
         }
         if (name === MidiEvent.SetTempo) {
           io.emit(IOEvent.TempoChange, midiEvent.data);

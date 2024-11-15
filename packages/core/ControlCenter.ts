@@ -277,7 +277,11 @@ export class ControlCenter extends EventEmitter {
         })
         .on('error', (err: Error) => {
           this.midiPlayer?.stop();
-          this.logger.debug('File stream error and MIDI play stopped.');
+          this.logger.error({
+            message: 'File stream error and MIDI play stopped.',
+            err: err.message,
+            stack: err.stack,
+          });
           this.emitTrackEnd(track);
         });
 

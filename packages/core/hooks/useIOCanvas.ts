@@ -6,7 +6,7 @@ import { io } from 'socket.io-client';
 import type Konva from 'konva';
 import { Element } from '../Space';
 import { EffectType } from '../EffectType';
-import { getNoteName } from '../Note';
+import { getNoteNumber } from '../Note';
 
 let socketClient;
 
@@ -148,20 +148,14 @@ export const useIOCanvas = ({
       .on(IOEvent.DebugOff, () => {
         debugModeRef.current = false;
       })
-      .on(IOEvent.NoteOn, (note, velocity, length = 0, sameNotes) => {
-        // console.log({ note, velocity, length, sameNotes });
-        const notes = [note];
-        if (sameNotes) {
-          // @TODO revisit as this may not be performant
-          notes.push(...sameNotes.split(',').map((n) => getNoteName(n)));
-        }
+      .on(IOEvent.NoteOn, (notes: number[], length = 0, velocity) => {
         const noteEls = elements.filter((el) =>
-          el.notes.some((n) => notes.includes(n))
+          el.notes.some((n) => notes.includes(getNoteNumber(n)))
         );
 
         if (noteEls?.length) {
           const isDimmable = noteEls.some((el) =>
-            el.dimmableNotes?.includes(note)
+            el.dimmableNotes?.some((n) => notes.includes(getNoteNumber(n)))
           );
 
           noteEls.forEach((el) => {
@@ -201,8 +195,10 @@ export const useIOCanvas = ({
           return;
         }
       })
-      .on(IOEvent.NoteOff, (note) => {
-        const noteEls = elements.filter((el) => el.notes.includes(note));
+      .on(IOEvent.NoteOff, (notes: number[]) => {
+        const noteEls = elements.filter((el) =>
+          el.notes.some((n) => notes.includes(getNoteNumber(n)))
+        );
 
         noteEls?.forEach((el) => {
           let canvasEl;

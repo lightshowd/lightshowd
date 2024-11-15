@@ -37,8 +37,7 @@ export class MidiIORouter {
     if (noteCommand) {
       this.emit(
         noteCommand,
-        noteName,
-        note,
+        [note],
         undefined,
         undefined,
         // auto off (for dimmer notes)
