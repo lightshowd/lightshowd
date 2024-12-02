@@ -36,7 +36,7 @@ export class Midi {
   public disabledNotes: string[] = [];
   public dimmableNotes: string[] = [];
   public dimmableNoteNumbers: number[] = [];
-  public velocityOverride: number = 0;
+  public velocityOverride: number | { [note: string]: number } = 0;
   /**
    * A map of all NoteOn events and their expected length/duration
    */
@@ -67,7 +67,7 @@ export class Midi {
     logger: Logger;
     disabledNotes?: string[];
     dimmableNotes?: string[];
-    velocityOverride?: number;
+    velocityOverride?: Midi['velocityOverride'];
   }) {
     this.io = io;
     this.midiPlayer = new MidiPlayer.Player();
@@ -118,10 +118,17 @@ export class Midi {
             return;
           }
 
+          let resolvedVelocity = velocity;
+          if (typeof this.velocityOverride === 'number') {
+            resolvedVelocity = this.velocityOverride;
+          } else if (typeof this.velocityOverride === 'object') {
+            resolvedVelocity = this.velocityOverride[noteName] ?? velocity;
+          }
+
           const noteArgs = [
             [noteNumber, ...(computedLengthEvent.sameNoteNums ?? [])],
             computedLengthEvent.length,
-            this.velocityOverride || velocity,
+            resolvedVelocity,
           ];
           io.emit(IOEvent.NoteOn, ...noteArgs);
         }
