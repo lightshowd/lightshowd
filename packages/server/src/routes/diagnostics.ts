@@ -18,21 +18,19 @@ diagnosticsRouter.get('/diagnostics/io', async (ctx) => {
 
   if (note) {
     const notes = (note as string).split(',');
+    const noteNumbers = notes.map((n) => getNoteNumber(n));
     notes.forEach((n) => {
       io.emit(
         event as string,
-        n,
-        getNoteNumber(n),
+        noteNumbers,
         length ? parseInt(length as string) : undefined,
-        sameNotes ? (sameNotes as string) : undefined,
         parseInt((velocity as string) || '0')
       );
     });
     ctx.body = {
       event,
-      note,
-      noteNumber: getNoteNumber(note as string),
-      sameNotes,
+      notes,
+      noteNumbers,
       length,
       velocity,
     };

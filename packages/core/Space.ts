@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import { resolve } from 'path';
 import { Logger } from './Logger';
 import { EffectType } from './EffectType';
+import { orderBy } from 'lodash';
 
 export interface Element {
   id: string;
@@ -72,7 +73,36 @@ export class SpaceCache {
   }
 
   getClient(id: string) {
-    return this.clients.find((c) => c.id === id);
+    const client = this.clients.find((c) => c.id === id);
+    if (!client) {
+      return;
+    }
+
+    if (client.notes) {
+      return client;
+    }
+
+    const channelNoteArrays: string[][] = [];
+
+    const maxChannelNumber =
+      typeof client.channels === 'number'
+        ? client.channels
+        : orderBy(client.channels, 'channel', 'desc')[0].channel;
+
+    (client.channels as { notes: string[]; channel: number }[]).forEach((c) => {
+      c.notes.forEach((n, index) => {
+        if (!channelNoteArrays[index]) {
+          channelNoteArrays[index] = new Array(maxChannelNumber).fill(
+            undefined
+          );
+        }
+
+        channelNoteArrays[index][c.channel - 1] = n;
+      });
+    });
+
+    client.notes = channelNoteArrays;
+    return client;
   }
 
   getSpaces() {

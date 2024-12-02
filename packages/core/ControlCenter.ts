@@ -75,6 +75,7 @@ export class ControlCenter extends EventEmitter {
       socket.once(IOEvent.ClientRegister, async (clientId) => {
         this.logger.info({ msg: 'Client registered', clientId });
         const space = this.spaceCache.getClient(clientId);
+
         if (space?.notes) {
           const notesString = getNotesString(space.notes);
           const noteNumbersString = getNoteNumbersString(space.notes);

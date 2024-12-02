@@ -7,7 +7,7 @@ import { log } from './logger';
 const { SERVER_URL, CHANNELS, LOG_MESSAGES, CLIENT_ID } = process.env;
 
 let channels: number[] = [];
-const notesRegistry: string[][] = [];
+const notesRegistry: number[][] = [];
 
 startUp();
 
@@ -52,26 +52,29 @@ function toggleAllChannels(mode: 'on' | 'off') {
   });
 }
 
-function toggleChannelByNote(note: string, mode: 'on' | 'off') {
+function toggleChannelByNote(notes: number[], mode: 'on' | 'off') {
   const activeNotes = notesRegistry[notesRegistry.length - 1];
-  const pin = channels[activeNotes.indexOf(note) % channels.length];
 
-  if (!pin) {
-    return;
-  }
+  notes.forEach((note) => {
+    const pin = channels[activeNotes.indexOf(note) % channels.length];
 
-  rpio.write(pin, mode === 'on' ? rpio.HIGH : rpio.LOW);
+    if (!pin) {
+      return;
+    }
+
+    rpio.write(pin, mode === 'on' ? rpio.HIGH : rpio.LOW);
+  });
 }
 
 function listenForNoteMessages(socket: Socket) {
   socket
-    .on(IOEvent.MapNotes, (clientId, notes, _, isPrimary) => {
+    .on(IOEvent.MapNotes, (clientId, _, noteNumbers, isPrimary) => {
       if (clientId !== CLIENT_ID) {
         return;
       }
 
-      if (notes) {
-        const mappedNotes = parseNotes(notes);
+      if (noteNumbers) {
+        const mappedNotes = parseNotes(noteNumbers);
         if (notesRegistry.length > 1) {
           notesRegistry.pop();
         }
@@ -85,8 +88,8 @@ function listenForNoteMessages(socket: Socket) {
       }
     })
     .on(IOEvent.TrackStart, () => toggleAllChannels('off'))
-    .on(IOEvent.NoteOn, (note: string) => toggleChannelByNote(note, 'on'))
-    .on(IOEvent.NoteOff, (note: string) => toggleChannelByNote(note, 'off'))
+    .on(IOEvent.NoteOn, (notes: number[]) => toggleChannelByNote(notes, 'on'))
+    .on(IOEvent.NoteOff, (notes: number[]) => toggleChannelByNote(notes, 'off'))
     .on(IOEvent.TrackEnd, () => {
       toggleAllChannels('on');
       // Reset to default pins
@@ -105,6 +108,6 @@ function listenForNoteMessages(socket: Socket) {
 function parseNotes(notes: string) {
   return notes
     .split(',')
-    .map((n) => n.trim())
-    .filter((n) => n);
+    .map((n) => parseInt(n.trim()))
+    .filter((n) => !isNaN(n));
 }
