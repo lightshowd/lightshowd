@@ -17,6 +17,8 @@ export enum IOEvent {
   MidiPlay = 'midi:play',
   MapNotes = 'notes:map',
   ClientRegister = 'client:register',
+  ClientDisable = 'client:disable',
+  ClientEnable = 'client:enable',
   DebugOn = 'debug:on',
   DebugOff = 'debug:off',
   TempoChange = 'tempo:change',

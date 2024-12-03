@@ -122,7 +122,10 @@ export class Midi {
           if (typeof this.velocityOverride === 'number') {
             resolvedVelocity = this.velocityOverride;
           } else if (typeof this.velocityOverride === 'object') {
-            resolvedVelocity = this.velocityOverride[noteName] ?? velocity;
+            resolvedVelocity =
+              this.velocityOverride[noteName] ??
+              this.velocityOverride['*'] ??
+              velocity;
           }
 
           const noteArgs = [
@@ -133,7 +136,7 @@ export class Midi {
           io.emit(IOEvent.NoteOn, ...noteArgs);
         }
         if (name === MidiEvent.NoteOff) {
-          io.emit(IOEvent.NoteOff, [noteNumber]);
+          io.emit(IOEvent.NoteOff, [noteNumber], noteNumber);
         }
         if (name === MidiEvent.SetTempo) {
           io.emit(IOEvent.TempoChange, midiEvent.data);

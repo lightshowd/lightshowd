@@ -8,6 +8,7 @@ const { SERVER_URL, CHANNELS, LOG_MESSAGES, CLIENT_ID } = process.env;
 
 let channels: number[] = [];
 const notesRegistry: number[][] = [];
+let isEnabled = true;
 
 startUp();
 
@@ -87,15 +88,42 @@ function listenForNoteMessages(socket: Socket) {
         log({ notesRegistry });
       }
     })
-    .on(IOEvent.TrackStart, () => toggleAllChannels('off'))
-    .on(IOEvent.NoteOn, (notes: number[]) => toggleChannelByNote(notes, 'on'))
-    .on(IOEvent.NoteOff, (notes: number[]) => toggleChannelByNote(notes, 'off'))
+    .on(IOEvent.TrackStart, () => {
+      if (!isEnabled) {
+        return;
+      }
+      toggleAllChannels('off');
+    })
+    .on(IOEvent.NoteOn, (notes: number[]) => {
+      if (!isEnabled) {
+        return;
+      }
+      toggleChannelByNote(notes, 'on');
+    })
+    .on(IOEvent.NoteOff, (notes: number[]) => {
+      if (!isEnabled) {
+        return;
+      }
+      toggleChannelByNote(notes, 'off');
+    })
     .on(IOEvent.TrackEnd, () => {
       toggleAllChannels('on');
       // Reset to default pins
       if (notesRegistry.length > 1) {
         notesRegistry.pop();
       }
+    })
+    .on(IOEvent.ClientEnable, (clientId) => {
+      if (clientId !== CLIENT_ID) {
+        return;
+      }
+      isEnabled = true;
+    })
+    .on(IOEvent.ClientDisable, (clientId) => {
+      if (clientId !== CLIENT_ID) {
+        return;
+      }
+      isEnabled = false;
     });
 
   if (LOG_MESSAGES === 'true') {

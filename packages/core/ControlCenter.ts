@@ -11,6 +11,7 @@ import { Playlist, Track, CurrentTrack } from './Playlist';
 import { IOEvent } from './IOEvent';
 import { Logger } from './Logger';
 import { setTimeout as awaitSetTimeout } from 'timers/promises';
+import { merge } from 'lodash';
 
 export class ControlCenter extends EventEmitter {
   public playlist: Playlist;
@@ -74,11 +75,11 @@ export class ControlCenter extends EventEmitter {
 
       socket.once(IOEvent.ClientRegister, async (clientId) => {
         this.logger.info({ msg: 'Client registered', clientId });
-        const space = this.spaceCache.getClient(clientId);
+        const spaceClient = this.spaceCache.getClient(clientId);
 
-        if (space?.notes) {
-          const notesString = getNotesString(space.notes);
-          const noteNumbersString = getNoteNumbersString(space.notes);
+        if (spaceClient?.notes) {
+          const notesString = getNotesString(spaceClient.notes);
+          const noteNumbersString = getNoteNumbersString(spaceClient.notes);
 
           await awaitSetTimeout(300);
 
@@ -93,7 +94,7 @@ export class ControlCenter extends EventEmitter {
             clientId,
             notesString,
             `${noteNumbersString},`, // cheap trailing comma for Arduino C parsing
-            true
+            !!this.currentTrack
           );
         }
       });
@@ -138,15 +139,28 @@ export class ControlCenter extends EventEmitter {
       const mappedClientIds: string[] = [];
       if (track.noteMappings) {
         Object.entries(track.noteMappings).forEach(([clientId, mappings]) => {
-          const { notes, dimmableNotes } = mappings;
+          const { notes, merge: mergeChannels } = mappings;
           mappedClientIds.push(clientId);
 
-          if (dimmableNotes) {
-            this.dimmableNotes = mergeNotes(this.dimmableNotes, dimmableNotes);
-          }
+          let notesString = notes;
+          let noteNumbersString = getNoteNumbersString(notes);
 
-          const notesString = getNotesString(notes);
-          const noteNumbersString = getNoteNumbersString(notes);
+          if (mergeChannels === true) {
+            const spaceClient = this.spaceCache.getClient(clientId);
+
+            const clientNotesString = getNotesString(spaceClient?.notes ?? []);
+            const clientNoteNumbersString = getNotesString(
+              spaceClient?.notes ?? []
+            );
+            notesString = merge(
+              clientNotesString.split(','),
+              notes.split(',').map((n) => (!n ? undefined : n))
+            ).join(',');
+            noteNumbersString = merge(
+              clientNoteNumbersString.split(','),
+              noteNumbersString.split(',').map((n) => (!n ? undefined : n))
+            ).join(',');
+          }
 
           this.logger.info({
             msg: 'mapping track notes',
@@ -160,52 +174,36 @@ export class ControlCenter extends EventEmitter {
             clientId,
             notesString,
             `${noteNumbersString},`, // cheap trailing comma for Arduino C parsing
-            dimmableNotes ? getNotesString(dimmableNotes) : undefined
+            undefined // dimmableNotes ? getNotesString(dimmableNotes) : undefined
           );
         });
       }
 
       this.spaceCache.clients
         .filter((c) => !mappedClientIds.includes(c.id))
-        .forEach((c) => {
-          let notes: string[] | string[][] | undefined = c.notes;
-          if (!notes && typeof c.channels !== 'number') {
-            notes = c.channels.flatMap((c) => c.notes);
-          }
+        .forEach(({ id: clientId }) => {
+          const spaceClient = this.spaceCache.getClient(clientId);
 
-          if (!notes) {
-            return;
-          }
-          const notesString = getNotesString(notes);
-          const noteNumbersString = getNoteNumbersString(notes);
+          if (spaceClient?.notes) {
+            const notesString = getNotesString(spaceClient.notes);
+            const noteNumbersString = getNoteNumbersString(spaceClient.notes);
 
-          this.logger.info({
-            msg: 'Remapping notes',
-            clientId: c.id,
-            noteNumbersString,
-          });
+            this.logger.info({
+              msg: 'Remapping notes',
+              clientId: clientId,
+              noteNumbersString,
+            });
 
-          this.io.emit(
-            IOEvent.MapNotes,
-            c.id,
-            notesString,
-            `${noteNumbersString},`, // cheap trailing comma for Arduino C parsing
-            c.dimmableNotes ? getNotesString(c.dimmableNotes) : undefined
-            // note numbers for dimmables can be skipped
-          );
-
-          if (c.dimmableNotes) {
-            this.dimmableNotes = mergeNotes(
-              this.dimmableNotes,
-              c.dimmableNotes!
+            this.io.emit(
+              IOEvent.MapNotes,
+              clientId,
+              notesString,
+              `${noteNumbersString},`, // cheap trailing comma for Arduino C parsing
+              !!this.currentTrack
             );
           }
         });
 
-      this.logger.debug({
-        msg: 'merged dimmable notes',
-        notes: this.dimmableNotes,
-      });
       this.midiPlayer = new Midi({
         io: this.io,
         disabledNotes: disabledNotes || this.disabledNotes,

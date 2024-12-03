@@ -1,6 +1,7 @@
 import Router from '@koa/router';
 import { getNoteNumber } from '@lightshowd/core/Note';
 import { IOEvent } from '@lightshowd/core/IOEvent';
+import type { ControlCenter } from '@lightshowd/core/ControlCenter';
 import type { Server as SocketIOServer } from 'socket.io';
 
 export const diagnosticsRouter = new Router();
@@ -13,6 +14,26 @@ diagnosticsRouter.get('/diagnostics/io', async (ctx) => {
   if (event === IOEvent.MapNotes) {
     io.emit(IOEvent.MapNotes, clientId, value);
     ctx.body = { clientId, value };
+    return;
+  }
+
+  if (event === IOEvent.ClientDisable || event === IOEvent.ClientDisable) {
+    const { controlCenter }: { controlCenter: ControlCenter } = ctx.state;
+    if (value === '*') {
+      controlCenter.spaceCache.clients.forEach((c) => {
+        io.emit(event, c.id);
+      });
+    } else if (value) {
+      const clientIds = (value as string).split(',');
+      clientIds.forEach((id) => {
+        io.emit(event, id);
+      });
+    }
+
+    ctx.body = {
+      event,
+      value,
+    };
     return;
   }
 

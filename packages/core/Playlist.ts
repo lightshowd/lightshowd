@@ -24,6 +24,7 @@ export interface Track {
       dimmableNotes: string;
       noteNumbers?: string;
       dimmableNoteNumbers?: string;
+      merge?: boolean;
     };
   };
   velocityOverride?: number | { [note: string]: number };
