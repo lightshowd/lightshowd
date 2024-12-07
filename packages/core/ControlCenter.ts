@@ -87,6 +87,7 @@ export class ControlCenter extends EventEmitter {
             msg: 'mapping notes',
             notesString,
             noteNumbersString,
+            isPlaying: this.currentTrack ? 1 : 0,
           });
 
           this.io.emit(
@@ -94,7 +95,7 @@ export class ControlCenter extends EventEmitter {
             clientId,
             notesString,
             `${noteNumbersString},`, // cheap trailing comma for Arduino C parsing
-            !!this.currentTrack
+            this.currentTrack ? 1 : 0
           );
         }
       });

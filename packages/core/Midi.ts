@@ -36,7 +36,7 @@ export class Midi {
   public disabledNotes: string[] = [];
   public dimmableNotes: string[] = [];
   public dimmableNoteNumbers: number[] = [];
-  public velocityOverride: number | { [note: string]: number } = 0;
+  public velocityOverride: number | { [note: string]: number } | undefined;
   /**
    * A map of all NoteOn events and their expected length/duration
    */
@@ -53,6 +53,7 @@ export class Midi {
 
   private callbackList: { [ev: string]: (() => any)[] } = {};
   private callackOnceList: { [ev: string]: (() => any)[] } = {};
+  private currentTempo: number = 0;
 
   constructor({
     io,
@@ -97,6 +98,10 @@ export class Midi {
       })
       .on(MidiPlayerEvent.MidiEvent, (midiEvent: MidiPlayer.Event) => {
         let { name } = midiEvent;
+        if (name === MidiEvent.SetTempo) {
+          this.currentTempo = midiEvent.data ?? 0;
+          io.emit(IOEvent.TempoChange, midiEvent.data);
+        }
         const { noteName, noteNumber, tick, velocity = 0 } = midiEvent;
         if (!noteNumber || !noteName) {
           return;
@@ -132,17 +137,16 @@ export class Midi {
             [noteNumber, ...(computedLengthEvent.sameNoteNums ?? [])],
             computedLengthEvent.length,
             resolvedVelocity,
+            this.currentTempo,
           ];
           io.emit(IOEvent.NoteOn, ...noteArgs);
+          this.logger.verbose({ msg: 'note_on_args', payload: noteArgs });
         }
         if (name === MidiEvent.NoteOff) {
           io.emit(IOEvent.NoteOff, [noteNumber], noteNumber);
         }
-        if (name === MidiEvent.SetTempo) {
-          io.emit(IOEvent.TempoChange, midiEvent.data);
-        }
 
-        this.logger.verbose({ msg: 'raw_event', payload: midiEvent });
+        //  this.logger.verbose({ msg: 'raw_event', payload: midiEvent });
       })
       .on(MidiPlayerEvent.EndOfFile, () => {
         io.emit(IOEvent.MidiFileEnd);
