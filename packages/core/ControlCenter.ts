@@ -76,13 +76,21 @@ export class ControlCenter extends EventEmitter {
       socket.once(IOEvent.ClientRegister, async (clientId) => {
         this.logger.info({ msg: 'Client registered', clientId });
         const spaceClient = this.spaceCache.getClient(clientId);
+        await awaitSetTimeout(300);
 
-        if (spaceClient?.notes) {
-          const notesString = getNotesString(spaceClient.notes);
-          const noteNumbersString = getNoteNumbersString(spaceClient.notes);
+        let notesString = '';
+        let noteNumbersString = '';
 
-          await awaitSetTimeout(300);
+        // Map overrides if track is playing
+        if (this.currentTrack?.noteMappings?.[clientId]) {
+          notesString = this.currentTrack.noteMappings[clientId].notes;
+          noteNumbersString = getNoteNumbersString(notesString);
+        } else if (spaceClient?.notes) {
+          notesString = getNotesString(spaceClient.notes);
+          noteNumbersString = getNoteNumbersString(spaceClient.notes);
+        }
 
+        if (notesString) {
           logger.debug({
             msg: 'mapping notes',
             notesString,

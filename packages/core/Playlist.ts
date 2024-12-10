@@ -132,7 +132,7 @@ export class Playlist {
     return messageParts.join('\n');
   }
 
-  canPlayTrack(track: Track) {
+  canPlayTrack(track: Track, requester?: string) {
     if (this.currentTrack) {
       this.currentMessage = `${this.currentTrack.name} is currently playing on ${FREQUENCY} ${BAND}`;
       return false;
