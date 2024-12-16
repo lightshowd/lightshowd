@@ -56,13 +56,15 @@ function toggleAllChannels(mode: 'on' | 'off') {
 function toggleChannelByNote(notes: number[], mode: 'on' | 'off') {
   const activeNotes = notesRegistry[notesRegistry.length - 1];
 
-  notes.forEach((note) => {
-    const pin = channels[activeNotes.indexOf(note) % channels.length];
+  const pins = activeNotes
+    .map((n, i) => (notes.includes(n) ? i : -1))
+    .filter((i) => i !== -1);
 
-    if (!pin) {
-      return;
-    }
+  if (!pins.length) {
+    return;
+  }
 
+  pins.forEach((pin) => {
     rpio.write(pin, mode === 'on' ? rpio.HIGH : rpio.LOW);
   });
 }
