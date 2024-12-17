@@ -315,7 +315,9 @@ export class Midi {
         (ce) =>
           ce.tick === ev.tick &&
           ce.length === ev.length &&
+          ce.velocity === ev.velocity &&
           ce.noteName !== ev.noteName &&
+          // Pair notes that are in the same octave and are both in the lower or upper half of the octave
           Math.floor(ce.noteNumber! / 12) === Math.floor(ev.noteNumber! / 12) &&
           ((ce.noteNumber! % 12 <= 5 && ev.noteNumber! % 12 <= 5) ||
             (ce.noteNumber! % 12 > 5 && ev.noteNumber! % 12 > 5))
